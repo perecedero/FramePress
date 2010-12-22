@@ -1,0 +1,100 @@
+mié 22 dic 2010 09:28:33 
+Nueva funcionalidad agregada al core:
+
+ clase Config:
+
+	functions: 
+		mixed $wpf->Config->read(string $key)
+		read $key value from config.php preconfigured info
+
+ Added config/path.php
+	add customized paths to core path class, this paths will be avaible via Path class
+
+ Added WP hack
+	now is avaiable to use headers and $_SESSION super global variable
+	for $_SESSION is needed to start session first with session_start(); function
+	and then close it with session_write_close():
+
+--------------------------------------------------------
+
+
+Arrgele el path para los layouts, ahora van dentro de VIEWS/layouts/
+
+nueva funcionalidad agregada al core:
+
+ clase Session:
+
+	functions: 
+		null $wpf->Session->write(string $key, mixed $value)
+		mixed $wpf->Session->read(string $key)
+		null $wpf->Session->delete(string $key)
+		bool $wpf->Session->check(string $key) //chek if a key exist 
+		null $wpf->Session->destroy() //destroy all values stored on session
+
+
+
+--------------------------------------------------------
+
+Arregle conflicto de nombres entre distintas versiones del framework si estan corriendo en el mismo WP
+
+	//nueva forma de inicializar el framework.
+	require_once('.core/w2pf_init.php');
+	$w2pf_test = new $W2PF(__FILE__);
+
+
+nueva funcionalidad agregada al core:
+
+ clase html:
+	accessible desde cualquier vista.
+
+	function img: 
+		crea una tag <IMG> reslviendo automaticamente la direccion de la imagen
+
+		$this->html->img(string $filename, array $options)
+
+			$filename: nombre del archivo hubicado en la carpeta IMG. 
+				ej: 'logo.png'
+
+			$options: cualquier atributo posible en el tag imagen. 
+				ej: array('id'=>'miid', 'alt'=>'a img title', 'style'=>'...', 'onclick'=>'...', [...]);
+
+	function link
+		crea un tag <A>, pudiendo resolver automaticamente el href
+
+		$this->html->link(string $title, array|string $url, array $options)
+
+			$title: texto del link. 
+				ej: 'click here'
+
+			$url (string): el href completo para el tag
+				ej: '/wp-admin/index.php?page=x&arg=1'
+
+			$url (array):
+				ej:array('menu_type'=> 'tools', 'page'=>'page_controller', 'function'=>'afunction_under_controller', 'param1', 'param2')
+				ej:array('page'=>'page_controller', 'function'=>'afunction_under_controller');
+
+			$options: cualquier atributo posible en el tag imagen. 
+				ej: array('id'=>'miid', 'alt'=>'a img title', 'style'=>'...', 'onclick'=>'...', [...]);
+
+ clase core
+
+	function redirect 
+
+		$w2pf_test->redirect(array|string $url)
+
+			$url (string): el href completo para el tag
+				ej: '/wp-admin/index.php?page=x&arg=1'
+
+			$url (array):
+				ej:array('menu_type'=> 'tools', 'page'=>'page_controller', 'function'=>'afunction_under_controller', 'param1', 'param2')
+				ej:array('page'=>'page_controller', 'function'=>'afunction_under_controller');
+
+	function import 
+
+		$w2pf_test->import(string $file)
+
+			$file: nombre del archivo hubicado en la carpeta LIB. 
+				ej: 'milib.php'
+
+
+
