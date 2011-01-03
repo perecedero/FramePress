@@ -5,7 +5,7 @@
 	developer: Perecedero (Ivan Lansky) perecedero@gmail.com
 */
 
-class w2pf_core_v1 {
+class w2pf_core_test {
 
 	var $Path;
 	var $Msg;
@@ -21,12 +21,9 @@ class w2pf_core_v1 {
 	{
 		$this->main_file = $main_file;
 
-
 		global $W2PF_version;
 
-
 		if (!class_exists($w2pf_path = 'w2pf_path_'.$W2PF_version)) {require_once('w2pf_path.php');}
-
 		if (!class_exists($w2pf_view = 'w2pf_view_'.$W2PF_version)) {require_once('w2pf_view.php');}
 		if (!class_exists($w2pf_msg = 'w2pf_msg_'.$W2PF_version)) {require_once('w2pf_msg.php');}
 		if (!class_exists($w2pf_page = 'w2pf_page_'.$W2PF_version)) {require_once('w2pf_page.php');}
@@ -69,8 +66,7 @@ class w2pf_core_v1 {
 		ob_end_clean();
 		$href = html_entity_decode($this->Path->router($url));
 		header('Location: '.$href);
-
-		//exit("<script>document.location.href='{$href}'</script>");
+		exit;
 	}
 
 	function import ($name){

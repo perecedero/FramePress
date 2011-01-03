@@ -13,14 +13,13 @@ de tiempo etc, o que haga un destroy y un start
 */
 
 
-class w2pf_session_v1 {
+class w2pf_session_test {
 
 	var $path = null;
 	var $config = null;
 	var $file = null;
 
 	function __construct($path, $config){
-
 		$id= null;
 		foreach ($_COOKIE as $key => $value)
 		{
@@ -29,31 +28,26 @@ class w2pf_session_v1 {
 
 		$this->path = &$path;
 		$this->config = &$config;
-		$this->file = $this->path->Dir['WPFTMP']. $this->path->DS . 'session' . $id;
-
-		//checkeo si el file existe
-		if(!file_exists($this->file))
-		{
-			file_put_contents($this->file, base64_encode(gzcompress('$data=array();')));
+		if ($id){
+			$this->file = $this->path->Dir['WPFTMP']. $this->path->DS . 'session_' . $id;
 		}
 
-		//checkeo el tiempo de creacion del file
-		elseif ((filectime($this->file) + ($this->config->read('session.time'))) < strtotime('now'))
+		//checkeo si el file existe
+		if($this->file && !file_exists($this->file))
 		{
-			file_put_contents($this->file, base64_encode(gzcompress('$data=array();'))); 
+			file_put_contents($this->file, base64_encode(gzcompress('$data=array();')));
 		}
 
 		//borro los posibles files viejos
 		$directoryHandle = opendir($directory=$this->path->Dir['WPFTMP']);
 		while ($contents = readdir($directoryHandle)) {
-			if($contents != '.' && $contents != '..') {
+			if(preg_match("/^session_(.)*$/", $contents)) {
 				$filepath = $directory . $this->path->DS . $contents;
-				if((filectime($filepath) + ($this->config->read('session.time'))) < strtotime('now')){
+				if((fileatime($filepath) + ($this->config->read('session.time'))) < strtotime('now')){
 					unlink($filepath);
 				}
 			}
 		}
-
 	}
 
 	function read ($key)

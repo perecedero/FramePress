@@ -4,7 +4,7 @@
 		with this you can get the same name for
 		controller on different plugins
 	*/
-	$config['prefix'] = 'pressback';
+	$config['prefix'] = 'test';
 
 	/*
 		this will be the session duration time in seconds

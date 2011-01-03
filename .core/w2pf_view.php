@@ -5,7 +5,7 @@
 	developer: Perecedero (Ivan Lansky) perecedero@gmail.com
 */
 
-class w2pf_view_v1 {
+class w2pf_view_test {
 
 	var $vars = array();
 	var $css= array();

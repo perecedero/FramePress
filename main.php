@@ -16,6 +16,14 @@ Author URI: http://infinimedia.com/
 
 	//pages to add
 	$wp_pages =array (
+		'tools' =>array(//[menu, dashboard, posts, media, links, pages, comments, appearance, plugins, users, tools, settings]
+			array(
+				'page_title' => 'Tools Title 1',
+				'menu_title' => 'Tools Mtitle 1',
+				'capability' => 'administrator',
+				'menu_slug' => 'first',
+			),
+		),
 	/*
 		'tools' =>array(//[menu, dashboard, posts, media, links, pages, comments, appearance, plugins, users, tools, settings]
 			array(

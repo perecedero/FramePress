@@ -5,7 +5,7 @@
 	developer: Perecedero (Ivan Lansky) perecedero@gmail.com
 */
 
-class w2pf_path_v1
+class w2pf_path_test
 {
 	var $Dir;
 	var $DS;
@@ -83,20 +83,28 @@ class w2pf_path_v1
 				}
 			}
 
+			$aux_url = str_replace('https://', '', str_replace('http://', '', get_option('siteurl')));
+			if($_SERVER['SERVER_PORT'] != 80)
+			{
+				$aux_url = str_replace($_SERVER['SERVER_NAME'].':'.$_SERVER['SERVER_PORT'], '', $aux_url);
+			}else{
+				$aux_url = str_replace($_SERVER['SERVER_NAME'], '', $aux_url);
+			}
+
 			if(isset($url['menu_type'])){
 				switch ($url['menu_type']){
-					case 'menu': $href= '/blog/wp-admin/admin.php?'; break;
-					case 'dashboard': $href= '/blog/wp-admin/index.php?'; break;
-					case 'posts': $href= '/blog/wp-admin/edit.php?'; break;
-					case 'media': $href= '/blog/wp-admin/upload.php?'; break;
-					case 'links': $href= '/blog/wp-admin/link-manager.php?'; break;
-					case 'pages': $href= '/blog/wp-admin/edit.php?post_type=page&'; break;
-					case 'comments': $href= '/blog/wp-admin/edit-comments.php?'; break;
-					case 'appearance': $href= '/blog/wp-admin/themes.php?'; break;
-					case 'plugins': $href= '/blog/wp-admin/plugins.php?'; break;
-					case 'users': $href= '/blog/wp-admin/users.php?'; break;
-					case 'tools': $href= '/blog/wp-admin/tools.php?'; break;
-					case 'settings': $href= '/blog/wp-admin/options-general.php?'; break;
+					case 'menu': $href= $aux_url.'/wp-admin/admin.php?'; break;
+					case 'dashboard': $href= $aux_url.'/wp-admin/index.php?'; break;
+					case 'posts': $href= $aux_url.'/wp-admin/edit.php?'; break;
+					case 'media': $href= $aux_url.'/wp-admin/upload.php?'; break;
+					case 'links': $href= $aux_url.'/wp-admin/link-manager.php?'; break;
+					case 'pages': $href= $aux_url.'/wp-admin/edit.php?post_type=page&'; break;
+					case 'comments': $href= $aux_url.'/wp-admin/edit-comments.php?'; break;
+					case 'appearance': $href= $aux_url.'/wp-admin/themes.php?'; break;
+					case 'plugins': $href= $aux_url.'/wp-admin/plugins.php?'; break;
+					case 'users': $href= $aux_url.'/wp-admin/users.php?'; break;
+					case 'tools': $href= $aux_url.'/wp-admin/tools.php?'; break;
+					case 'settings': $href= $aux_url.'/wp-admin/options-general.php?'; break;
 					default: $href= $_SERVER['PHP_SELF'].'?'; break;
 				}
 			}

@@ -6,15 +6,17 @@
 */
 
 
-class w2pf_config_v1 {
+class w2pf_config_test {
 
 	var $vars = null;
 	var $path= null;
 
 	function __construct($path){
+		/*
 		$this->path = &$path;
 		require_once($this->path->Dir['CONFIG'] . $this->path->DS . 'config.php');
 		$this->vars = $config;
+	*/
 	}
 
 	function read ($key)
