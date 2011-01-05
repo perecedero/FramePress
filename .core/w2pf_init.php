@@ -24,7 +24,7 @@
 	require_once(dirname(dirname(__FILE__)) . DS . 'config' . DS . 'config.php');
 
 	//check for errors
-	if( substr(sprintf('%o', fileperms(dirname(dirname(__FILE__)) . DS . 'tmp')), -3) !== '777'){
+	if( substr(sprintf('%o', fileperms(dirname(dirname(__FILE__)) . DS . 'tmp')), -3) < '777'){
 		trigger_error("Cant write on <b>tmp</b> folder, please change it's permissions", E_USER_ERROR);exit;
 	}
 	if(!$config['prefix']){
@@ -39,8 +39,10 @@
 		if(!preg_match("/^w2pf_init.php$/", $contents) && !preg_match("/^(.)*~$/", $contents) && $contents != '.' && $contents != '..' && !is_dir($directory . DS .$contents)) {
 			$code = file_get_contents($directory . DS . $contents);
 			preg_match('/class ([a-z0-9]*)_([a-z]*)_(?P<version>\w+)/', $code, $m);
-			$code = str_replace("{$m[1]}_{$m[2]}_{$m['version']}", "{$m[1]}_{$m[2]}_{$config['prefix']}", $code);
-			file_put_contents($directory . DS . $contents, $code);
+			if ("{$m[1]}_{$m[2]}_{$m['version']}" != "{$m[1]}_{$m[2]}_{$config['prefix']}"){
+				$code = str_replace("{$m[1]}_{$m[2]}_{$m['version']}", "{$m[1]}_{$m[2]}_{$config['prefix']}", $code);
+				file_put_contents($directory . DS . $contents, $code);
+			}
 		}
 	}
 
@@ -49,6 +51,7 @@
 	$W2PF='w2pf_core_'.$W2PF_version;
 	$GLOBALS["W2PF_version"]=$W2PF_version;
 	$GLOBALS["W2PF"]=$W2PF;
+	$GLOBALS["W2PF_CONFIG"]=$config;
 
 	if (!class_exists($W2PF)) {require_once('w2pf_core.php');}
 

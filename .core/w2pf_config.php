@@ -12,11 +12,9 @@ class w2pf_config_test {
 	var $path= null;
 
 	function __construct($path){
-		/*
+		global $W2PF_CONFIG;
 		$this->path = &$path;
-		require_once($this->path->Dir['CONFIG'] . $this->path->DS . 'config.php');
-		$this->vars = $config;
-	*/
+		$this->vars =$W2PF_CONFIG;
 	}
 
 	function read ($key)
