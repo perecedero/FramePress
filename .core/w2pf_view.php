@@ -1,148 +1,220 @@
 <?php
 
-/*
-	WordPress Framework, View class v1.2
-	developer: Perecedero (Ivan Lansky) perecedero@gmail.com
-*/
+/**
+ * View class for FramePress.
+ *
+ * This class is responsable of draw the views for controllers functions.
+ * It also handle de views for controller missing errors
+ *
+ * Licensed under The GPL v2 License
+ * Redistributions of files must retain the above copyright notice.
+ *
+ * @link				none yet
+ * @package		core
+ * @subpackage	core.view
+ * @since			0.1
+ * @license			GPL v2 License
+
+ * IMPORTANT NOTE: class name will be rewrited as w2pf_view_[something] (see w2pf_init.php file), to get unique class names between plugins.
+ */
 
 class w2pf_view_test {
 
+	/**
+	 * List of variables to pass to the view
+	 *
+	 * @var array
+	 * @access public
+	*/
 	var $vars = array();
-	var $css= array();
-	var $js= array();
+
+	/**
+	 * name of layout page to insert the view
+	 *
+	 * @var String
+	 * @access public
+	*/
 	var $layout= 'default';
 
-	var $page =null;
-	var $view_name =null;
+	/**
+	 * Name of controller drawind the view
+	 * neede to now where to find the view file
+	 *
+	 * @var String
+	 * @access public
+	*/
+	var $controller_name =null;
 
+	/**
+	 * Name of controller function drawind the view
+	 * neede to now where to find the view file
+	 *
+	 * @var String
+	 * @access public
+	*/
+	var $function_name =null;
+
+	/**
+	 * Path for view file
+	 *
+	 * @var String
+	 * @access public
+	*/
+	var $controller_file =null;
+
+	/**
+	 * Path for view file
+	 *
+	 * @var String
+	 * @access public
+	*/
+	var $view_file =null;
+
+	/**
+	 * Path for layout file
+	 *
+	 * @var String
+	 * @access public
+	*/
+	var $layout_file =null;
+
+	/**
+	 * local instance of Path Class
+	 *
+	 * @var Object
+	 * @access public
+	*/
 	var $path = null;
+
+	/**
+	 * local instance of Msg Class
+	 *
+	 * @var Object
+	 * @access public
+	*/
 	var $msg = null;
+
+	/**
+	 * local instance of Html Class
+	 *
+	 * @var Object
+	 * @access public
+	*/
 	var $html = null;
 
-	function __construct($path, $msg, $html_class_name){
-		$this->path = &$path;
-		$this->msg = &$msg;
-		$this->html =new $html_class_name(&$path);
+	/**
+	 * Constructor.
+	 *
+	 * @param object $path Reference to Path class instance created on Core class
+	 * @param object $msg Reference to Msg class instance created on Core class
+	 * @param object $html Reference to Html class instance created on Core class
+	 * @access public
+	 */
+	function __construct(&$path, &$msg, &$html){
+
+		$this->path = $path;
+		$this->msg = $msg;
+		$this->html = $html;
 	}
 
-	function set ($varName, $value)
-	{
+	/**
+	 * Save a variable to pass it to the view.
+	 *
+	 * @param string $varName tag for the variable
+	 * @param mixed $value value of the variable passed to the view
+	 * @return void
+	 * @access public
+	*/
+	function set ($varName, $value) {
+
 		$this->vars[$varName] = $value;
 	}
 
-	function css ($cssname)
-	{
-		$this->css[] = $cssname;
-	}
+	/**
+	 * Set the name of the layout that will be used for draw the view
+	 *
+	 * @param string $layout_name name of the layout file
+	 * @return void
+	 * @access public
+	*/
+	function layout ($layout_name) {
 
-	function js ($jsname, $at_top=false)
-	{
-		$this->js[] = array($jsname, $at_top);
-	}
-
-	function layout ($layout_name)
-	{
 		$this->layout = $layout_name;
 	}
 
-	function draw ()
-	{
-		ob_start();
+	/**
+	 * Draw the view with the layout
+	 *
+	 * @return void
+	 * @access public
+	*/
+	function draw () {
 
+		$this->view_file = $this->path->Dir['VIEW'] . DS . strtolower($this->controller_name) . DS . $this->function_name . ".php";
+		if(!file_exists($this->view_file)){
+			$this->draw_error('missing_view'); exit;
+		}
+
+		$this->layout_file = $this->path->Dir['VIEW'] . DS . 'layouts' . DS . $this->layout . ".php";
+		if(!file_exists($this->path->Dir['VIEW'] . DS . 'layouts' . DS . $this->layout . ".php")) {
+			$this->layout_file = $this->path->Dir['CORE'] . DS . 'defaults' . DS . 'views' . DS . "default.php";
+		}
+
+		ob_start();
 			//import variables
 			if ($this->vars)
 			{
 				foreach ($this->vars as $key=>$value) {$$key = $value; }$this->vars = array();
 			}
 
-			//load css's
-			if($this->css)
-			{
-				echo '<style type=\'text/css\'>'."\n";
-					for($i=0; $i<count($this->css); $i++) { if(file_exists($cssfile=$this->path->Dir['CSS'] . $this->path->DS . $this->css[$i] . ".css")){require_once ($cssfile); echo "\n";} }
-				echo '</style>'."\n";
-			}
+			//load view
+			require_once ($this->view_file);
 
-			//load js's
-			if($this->js)
-			{
-				echo '<script type=\'text/javascript\'>'."\n";
-					for($i=0; $i<count($this->js); $i++) { if($this->js[$i][1] && file_exists($jsfile=$this->path->Dir['JS'] . $this->path->DS . $this->js[$i][0] . ".js")){require_once ($jsfile); echo "\n";} }
-				echo '</script>'."\n";
-			}
-
-			// load view
-			$view_name_1234 = $this->view_name;
-			$view_name_1234_not_found = false;
-			if(file_exists($view_page_to_dsiplay_1234 = $this->path->Dir['VIEW'] . $this->path->DS . $this->page. $this->path->DS .  $view_name_1234 . ".php")){
-				require_once ($view_page_to_dsiplay_1234);
-			}
-			else
-			{
-				require_once ($this->path->Dir['CORE'] . $this->path->DS . 'defaults' . $this->path->DS . 'views' . $this->path->DS . "missing_view.php");
-				$view_name_1234_not_found = true;
-			}
-
-			//load js's
-			if($this->js)
-			{
-				echo '<script type=\'text/javascript\'>'."\n";
-					for($i=0; $i<count($this->js); $i++) { if(!$this->js[$i][1] && file_exists($jsfile=$this->path->Dir['JS'] . $this->path->DS . $this->js[$i][0] . ".js")){require_once ($jsfile); echo "\n";} }
-				echo '</script>'."\n";
-			}
-
-		//save all
-		$content_for_layout = ob_get_contents();
+			//save all
+			$content_for_layout = ob_get_contents();
 		ob_end_clean();
+
 
 		ob_start();
+			//load layout's
+			require_once ($this->layout_file);
 
-		//load layout's
-		if(!$view_name_1234_not_found && file_exists($layout_page_to_dsiplay_1234 = $this->path->Dir['VIEW'] . $this->path->DS . 'layouts' . $this->path->DS . $this->layout . ".php")){
-			require_once ($layout_page_to_dsiplay_1234);
-		}
-		else
-		{
-			require_once ($this->path->Dir['CORE'] . $this->path->DS . 'defaults' . $this->path->DS . 'views' . $this->path->DS . "default.php");
-		}
-
-		//save all
-		$buffer = ob_get_contents();
-
+			//save all
+			$buffer = ob_get_contents();
 		ob_end_clean();
 
-		echo $buffer;exit;
+		echo $buffer;
 	}
 
-	function draw_error ($view_name_1234 = null)
-	{
-		ob_start();
-
-		//import variables
-		if ($this->vars)
-		{
-			foreach ($this->vars as $key=>$value) {$$key = $value; }$this->vars = array();
-		}
-
-		// load view
-		require_once ($this->path->Dir['CORE'] . $this->path->DS . 'defaults' . $this->path->DS . 'views' . $this->path->DS . $view_name_1234.".php");
-		//save all
-		$content_for_layout = ob_get_contents();
-
-		ob_end_clean();
-
+	/**
+	 * Draw a error view with the layout
+	 *
+	 * @return void
+	 * @access public
+	*/
+	function draw_error ($type = null) {
 
 		ob_start();
+			// load view
+			$file = $this->path->Dir['CORE'] . DS . 'defaults' . DS . 'views' . DS . $type.".php";
+			require_once ($file);
 
-		//load layout's
-		require_once ($this->path->Dir['CORE'] . $this->path->DS . 'defaults' . $this->path->DS . 'views' . $this->path->DS . "default.php");
-		//save all
-		$buffer = ob_get_contents();
-
+			//save all
+			$content_for_layout = ob_get_contents();
 		ob_end_clean();
 
-		echo $buffer; exit;
-		return true;
+		ob_start();
+			//load layout's
+			$file = $this->path->Dir['CORE'] . DS . 'defaults' . DS . 'views' . DS . "default.php";
+			require_once ($file);
+
+			//save all
+			$buffer = ob_get_contents();
+		ob_end_clean();
+
+		echo $buffer;
+
+		exit;
 	}
 }
 

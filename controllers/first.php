@@ -1,8 +1,9 @@
 <?php
+class TestFirst {
+
 	function index(){
-		global $w2pf_test;
-		$w2pf_test->Session->test();
-		exit;
+		global $framepress_test;
 	}
 
+}
 ?>

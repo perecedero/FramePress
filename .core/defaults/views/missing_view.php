@@ -1,7 +1,7 @@
-<div class="wrap"> 
+<div class="wrap">
 	<p>
 		<h2>Missing view</h2>
-		<p>View <b><?echo $view_name_1234.'.php'; ?></b> not found</p>
-		<p>create it at <b><?echo $view_page_to_dsiplay_1234;?></b></p>
+		<p>View for <b><?echo $this->function_name; ?></b> not found</p>
+		<p>Create it at <b><?echo $this->view_file; ?></b></p>
 	</p>
 </div>
