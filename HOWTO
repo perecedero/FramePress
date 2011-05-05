@@ -1,0 +1,128 @@
+1) copy frame press to WP plugin folder
+
+2) change ./core permmissions to 777 (read and write for all)
+
+3) Modify prefix value on config/config.php (this value must be a unique one word, the plugin's name)
+
+4) modify main.php:
+
+	a) give a unique name for framepress core instance:
+		example:
+			//init framework
+			require_once('.core/w2pf_init.php');
+			global $FramePress;
+			global $supername;   //<< UNIQUE NAME
+			$supername = new $FramePress(__FILE__);
+
+	b) add admin pages, posibilities are:
+
+		//Custom Box
+		'menu' => array(
+			array(
+				'page_title' => 'Page Title',
+				'menu_title' => 'Box Title',
+				'capability' => 'administrator',
+				'menu_slug' => 'main', //<< Controller name
+			),
+		),
+
+		//Custom submenu under Custom menu
+		'submenu' =>array(
+			array(
+				'page_title' => 'Page Title',
+				'menu_title' => 'Link Title',
+				'capability' => 'administrator',
+				'menu_slug' => 'first', //<< Controller name
+				'parent_slug' => 'main' //<< Parent
+			),
+		);
+
+		//For other submenus on known admin menus
+		//posibilities are: dashboard, posts, media, links, pages, comments, appearance, plugins, users, tools, settings
+
+		'dashboard' =>array( 
+			array( 
+				'page_title' => 'Page Title',
+				'menu_title' => 'Link Title',
+				'capability' => 'administrator',
+				'menú_slug' => 'first', //<< Controller name
+			),
+		),
+
+		For each type it posible to declare more than one
+		example:
+
+			'tools' =>array( //MENU TYPE
+				array( 
+					'page_title' => 'Page Title 1',
+					'menu_title' => 'Tools link Title 1',
+					'capability' => 'administrator', 
+					'menú_slug' => 'first',
+				),
+				array( 
+					'page_title' => 'Page Title 2',
+					'menu_title' => 'Tools link Title 2',
+					'capability' => 'administrator', 
+					'menú_slug' => 'first', 
+				),
+				array( 
+					'page_title' => 'Page Title 3',
+					'menu_title' => 'Tools link Title 3',
+					'capability' => 'administrator', 
+					'menú_slug' => 'second', 
+				),
+			);
+
+	c) Add actions
+
+		array(
+			'tag' => 'do_some_action', 
+			'handler' => 'first',			//<< Controller name
+			'function' => 'do_action_a',	//<< function to manage the action
+			'is_ajax' => true,			//<< Is an action to call with ajax?
+		),
+
+		example:
+		$wp_actions = array (
+			array(
+				'tag' => 'save_post',				//<< well known WP tag
+				'handler' => 'events',
+				'function' => 'action_post_page_status',
+				'is_ajax' => false,
+			),
+			array(
+				'tag' => 'wp_head',				//<< well known WP tag
+				'handler' => 'meta',
+				'function' => 'insert_meta',
+				'is_ajax' => false,
+			),
+			array(
+				'tag' => 'check_status',				//<< custom tag
+				'handler' => 'events',
+				'function' => 'check_status',
+				'is_ajax' => true,
+			)
+		);
+
+	d) add action and menus to framework
+
+		$supername->Page->add($wp_pages);
+		$supername->Action->add($wp_actions);
+
+	SEE main.php TO GET A BETTER LOOK OF ALL THIS STEPS
+
+
+5) Create Your controlles for the menus and actions declared
+
+	a) class names are: prefix_value . declared name
+
+		example:
+			Class SupernameFirst { [code] }
+	
+	SEE controllers/first.php TO GET A BETTER LOOK OF CONTROLLERS, AND SEE WHAT CLASESS AND METHODS ARE AVAILABLES ON THEM
+
+
+6) create a layout. SEE views/layouts/alayput.php
+
+
+7) create a View for you functions controllers. SEE views/first/page2.php
