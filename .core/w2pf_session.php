@@ -36,7 +36,7 @@ class w2pf_session_test {
 		//create a global session if not exist
 		if ( !$session = get_option($this->session_name) ) {
 			$session = array (
-				$this->id => array (
+				(string)$this->id => array (
 					'time' => strtotime('now'),
 					'data' => array(),
 				),
