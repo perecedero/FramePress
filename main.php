@@ -26,14 +26,12 @@ Author URI: http://infinimedia.com/
 	);
 
 	$wp_actions = array (
-	/*
 		array(
-			tag' => 'some_tag',
-			handler' => 'principal_controller',
-			function' => 'afunction_under_controller',
-			'is_ajax' => true,
+			'tag' => 'some_tag',
+			'handler' => 'principal_controller',
+			'function' => 'afunction_under_controller',
+			'priority' => 2,
 		),
-	*/
 	);
 
 	$framepress_test->Page->add($wp_pages);

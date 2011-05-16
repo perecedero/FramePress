@@ -106,11 +106,16 @@ class w2pf_action_test {
 	function add ($actions = null) {
 
 		$this->actions = $actions;
+		$default =array('is_ajax'=> false, 'priority' => 10, 'accepted_args' => 1);
 
 		foreach ($this->actions as $action){
+
+			$action = array_merge($default, $action);
+
 			$tag = $action['tag'];
 			if($action['is_ajax']){$tag='wp_ajax_'.$tag;}
-			add_action($tag, array($this, $action['handler'].'AYNIL'.$action['function']));
+
+			add_action($tag, array($this, $action['handler'].'AYNIL'.$action['function']), $action['priority'], $action['accepted_args']);
 		}
 	}
 
