@@ -80,6 +80,10 @@
 					}
 				}
 			}
+			else
+			{
+				@chmod($temp . DS . 'press_tmp', 0777);
+			}
 
 			/**
 			 * Rename core classes to get unique names for this plugin
@@ -107,6 +111,7 @@
 			/**
 			 * Chek if class with prefix changed already exist (the neme will be not unique)
 			*/
+			global $FramePress;
 			if (class_exists($FramePress)) {
 				trigger_error("Sorry prefix: <b>" . $config['prefix'] . "</b> is used by other plugin on this WP installation, please choose a unique one", E_USER_WARNING);
 			}

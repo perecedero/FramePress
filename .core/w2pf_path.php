@@ -77,13 +77,13 @@ class w2pf_path_test {
 		$this->Dir['RESOURCES'] = $this->Dir['P_ROOT'] . DS . 'resources';
 
 		$this->Dir['IMG'] =  $this->Dir['RESOURCES'] . DS . 'img';
-		$this->Dir['IMG_URL'] = get_bloginfo( 'url' ).'/wp-content/plugins/'.$this->Dir['N_ROOT'].'/resources/img';
+		$this->Dir['IMG_URL'] = get_bloginfo( 'wpurl' ).'/wp-content/plugins/'.$this->Dir['N_ROOT'].'/resources/img';
 
 		$this->Dir['CSS'] = $this->Dir['RESOURCES'] . DS . 'css';
-		$this->Dir['CSS_URL'] = get_bloginfo( 'url' ).'/wp-content/plugins/'.$this->Dir['N_ROOT'].'/resources/css';
+		$this->Dir['CSS_URL'] = get_bloginfo( 'wpurl' ).'/wp-content/plugins/'.$this->Dir['N_ROOT'].'/resources/css';
 
 		$this->Dir['JS'] = $this->Dir['RESOURCES'] . DS . 'js';
-		$this->Dir['JS_URL'] = get_bloginfo( 'url' ).'/wp-content/plugins/'.$this->Dir['N_ROOT'].'/resources/js';
+		$this->Dir['JS_URL'] = get_bloginfo( 'wpurl' ).'/wp-content/plugins/'.$this->Dir['N_ROOT'].'/resources/js';
 
 		$this->Dir['VENDORS'] = $this->Dir['P_ROOT'] . DS . 'vendors';
 		$this->Dir['LIB'] = $this->Dir['P_ROOT'] . DS . 'lib';
@@ -135,14 +135,7 @@ class w2pf_path_test {
 			}
 		}
 
-		$aux_url = str_replace('https://', '', str_replace('http://', '', get_option('siteurl')));
-		if($_SERVER['SERVER_PORT'] != 80)
-		{
-			$aux_url = str_replace($_SERVER['SERVER_NAME'].':'.$_SERVER['SERVER_PORT'], '', $aux_url);
-		}else{
-			$aux_url = str_replace($_SERVER['SERVER_NAME'], '', $aux_url);
-		}
-
+		$aux_url = get_bloginfo('wpurl');
 		if(isset($url['menu_type'])){
 			switch ($url['menu_type']){
 				case 'menu': $href= $aux_url.'/wp-admin/admin.php?'; break;

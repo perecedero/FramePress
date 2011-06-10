@@ -207,16 +207,17 @@ class w2pf_core_test {
 	function kick_user($href = null) {
 
 		// Close user conection and keep working
-		ob_end_clean();
-		ob_start();
-		ignore_user_abort(true);
-		header('HTTP/1.0 200 OK');
-		header('Location: '.$href);
-		header("Connection: close");
-		header("Content-Length: 0");
-		echo str_repeat("\r\n", 10); // just to be sure
-		ob_end_flush();
-		flush();
+		@ob_end_clean();
+		@ob_start();
+		@ignore_user_abort(true);
+		header("Status: 302");
+		header('Location: '.$href, true, 302);
+		header("Content-Length: 0", true);
+		header("Connection: close", true);
+		echo str_repeat("\r\n", 128); // for IE
+		@ob_end_flush();
+		@ob_flush();
+		@flush();
 	}
 }
 
