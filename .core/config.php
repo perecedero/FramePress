@@ -14,10 +14,10 @@
  * @since         0.1
  * @license       GPL v2 License
 
- * IMPORTANT NOTE: class name will be rewrited as w2pf_config_[something] (see w2pf_init.php file), to get unique class names between plugins.
+ * IMPORTANT NOTE: class name will be rewrited as config_[prefix] (see init.php file), to get unique class names between plugins.
  */
 
-class w2pf_config_test {
+class config_test1 {
 
 	/**
 	 * Configuration list
@@ -25,15 +25,7 @@ class w2pf_config_test {
 	 * @var array
 	 * @access public
 	 */
-	var $custom_config= null;
-
-	/**
-	 * local instance of Path Class
-	 *
-	 * @var Object
-	 * @access public
-	 */
-	var $path= null;
+	var $custom_config = null;
 
 	/**
 	 * Constructor.
@@ -41,9 +33,8 @@ class w2pf_config_test {
 	 * @param object $path Reference to Path class instance created on Core class
 	 * @access public
 	 */
-	function __construct( &$path, $config) {
+	function __construct( $config ) {
 
-		$this->path = $path;
 		$this->custom_config = $config;
 	}
 
@@ -55,7 +46,7 @@ class w2pf_config_test {
 	 * @return mixed
 	 * @access public
 	 */
-	function read ($key) {
+	function read ( $key ) {
 
 		if(isset($this->custom_config[$key])){
 			return $this->custom_config[$key];

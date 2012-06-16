@@ -14,10 +14,10 @@
  * @since         0.1
  * @license       GPL v2 License
 
- * IMPORTANT NOTE: class name will be rewrited as w2pf_path_[something] (see w2pf_init.php file), to get unique class names between plugins.
+ * IMPORTANT NOTE: class name will be rewrited as path_[prefix] (see init.php file), to get unique class names between plugins.
  */
 
-class w2pf_path_test {
+class path_test1 {
 
 	/**
 	 * Paths list
@@ -41,7 +41,7 @@ class w2pf_path_test {
 	 * @var Object
 	 * @access public
 	*/
-	var $config=null;
+	var $Config = null;
 
 	/**
 	 * Constructor.
@@ -49,10 +49,11 @@ class w2pf_path_test {
 	 * @param string $main_file Path to plugin main file
 	 * @access public
 	*/
-	function __construct($main_file=null)
-	{
+	function __construct( $main_file = null, &$config ) {
+
 		global $FP_SYS_TEMP;
-		global $FP_APP_TEMP;
+
+		$this->Config = $config;
 
 		$path_parts = pathinfo($main_file);
 		$this->main_file = basename($main_file);
@@ -64,12 +65,7 @@ class w2pf_path_test {
 			$FP_SYS_TEMP=$this->Dir['P_ROOT'] . DS . 'tmp';
 		}
 
-		if(!$FP_APP_TEMP){
-			$FP_APP_TEMP=$FP_SYS_TEMP;
-		}
-
 		$this->Dir['SYSTMP'] = $FP_SYS_TEMP;
-		$this->Dir['WPFTMP'] = $FP_APP_TEMP;
 
 		$this->Dir['CORE'] = $this->Dir['P_ROOT'] . DS . '.core';
 		$this->Dir['CONFIG'] = $this->Dir['P_ROOT'] . DS . 'config';
@@ -87,8 +83,11 @@ class w2pf_path_test {
 
 		$this->Dir['VENDORS'] = $this->Dir['P_ROOT'] . DS . 'vendors';
 		$this->Dir['LIB'] = $this->Dir['P_ROOT'] . DS . 'lib';
+		$this->Dir['LANG'] = $this->Dir['P_ROOT'] . DS . 'languages';
 
 		$this->Dir['VIEW'] = $this->Dir['P_ROOT'] . DS . 'views';
+		$this->Dir['D_VIEW'] = $this->Dir['CORE'] . DS . 'defaults' . DS . 'views';
+
 		$this->Dir['PAGES'] = $this->Dir['P_ROOT'] . DS . 'controllers';
 		$this->Dir['ACTIONS'] = $this->Dir['P_ROOT'] . DS . 'controllers';
 
@@ -100,17 +99,6 @@ class w2pf_path_test {
 		}
 	}
 
-	/**
-	 * Set the local instance of Config Class
-	 *
-	 *
-	 * @param string $key Index for value to read
-	 * @return mixed
-	 * @access public
-	*/
-	function setconf( &$config ){
-		$this->config = $config;
-	}
 
 	/**
 	 * Create an URL to a controller or resource using a "place" array
@@ -121,48 +109,42 @@ class w2pf_path_test {
 	*/
 	function router ($url=array()) {
 
+		//string pased, nothing to do
 		if (!is_array($url)){
 			return $url;
 		}
 
-		//pass the parameter to the funcion
-		$params='';
-		foreach($url as $key =>$value)
-		{
-			if(preg_match("/^[[:digit:]]+$/", $key))
-			{
-				$params.='&amp;fargs[]='.urlencode($value);
-			}
+		//complete $url
+		$defaults = array('menu_type' => null, 'controller' => null, 'function'=> null, 'params'=> '');
+		$url = array_merge($defaults, $url);
+
+		//correct values
+		$url['controller'] = ($url['controller'])?$this->Config->read('prefix').'_'.$url['controller']:$_GET['page'];
+		$url['function'] = ($url['function'])?'&amp;function='.$url['function']:'';
+
+		//parameter to the funcion
+		foreach($url as $key =>$value) {
+			if(preg_match("/^[[:digit:]]+$/", $key)) { $url['params'].='&amp;fargs[]='.urlencode($value); }
 		}
 
-		$aux_url = get_bloginfo('wpurl');
-		if(isset($url['menu_type'])){
-			switch ($url['menu_type']){
-				case 'menu': $href= $aux_url.'/wp-admin/admin.php?'; break;
-				case 'dashboard': $href= $aux_url.'/wp-admin/index.php?'; break;
-				case 'posts': $href= $aux_url.'/wp-admin/edit.php?'; break;
-				case 'media': $href= $aux_url.'/wp-admin/upload.php?'; break;
-				case 'links': $href= $aux_url.'/wp-admin/link-manager.php?'; break;
-				case 'pages': $href= $aux_url.'/wp-admin/edit.php?post_type=page&'; break;
-				case 'comments': $href= $aux_url.'/wp-admin/edit-comments.php?'; break;
-				case 'appearance': $href= $aux_url.'/wp-admin/themes.php?'; break;
-				case 'plugins': $href= $aux_url.'/wp-admin/plugins.php?'; break;
-				case 'users': $href= $aux_url.'/wp-admin/users.php?'; break;
-				case 'tools': $href= $aux_url.'/wp-admin/tools.php?'; break;
-				case 'settings': $href= $aux_url.'/wp-admin/options-general.php?'; break;
-				default: $href= $_SERVER['PHP_SELF'].'?'; break;
-			}
-		}
-		else
-		{
-			$href= $_SERVER['PHP_SELF'].'?';
+		$wpurl = get_bloginfo('wpurl');
+		switch ($url['menu_type']){
+			case 'menu':		$base = $wpurl.'/wp-admin/admin.php?'; break;
+			case 'dashboard':	$base = $wpurl.'/wp-admin/index.php?'; break;
+			case 'posts':		$base = $wpurl.'/wp-admin/edit.php?'; break;
+			case 'media':		$base = $wpurl.'/wp-admin/upload.php?'; break;
+			case 'links':		$base = $wpurl.'/wp-admin/link-manager.php?'; break;
+			case 'pages':		$base = $wpurl.'/wp-admin/edit.php?post_type=page&'; break;
+			case 'comments':	$base = $wpurl.'/wp-admin/edit-comments.php?'; break;
+			case 'appearance':	$base = $wpurl.'/wp-admin/themes.php?'; break;
+			case 'plugins':		$base = $wpurl.'/wp-admin/plugins.php?'; break;
+			case 'users':		$base = $wpurl.'/wp-admin/users.php?'; break;
+			case 'tools':		$base = $wpurl.'/wp-admin/tools.php?'; break;
+			case 'settings':	$base = $wpurl.'/wp-admin/options-general.php?'; break;
+			default: 			$base = $_SERVER['PHP_SELF'].'?'; break;
 		}
 
-		$href.='page='.$this->config->read('prefix').'_'.$url['controller'];
-		if(isset($url['function'])){$href.='&amp;function='.$url['function'];}
-		$href.=$params;
-
-		return $href;
+		return $base . 'page=' . $url['controller'] . $url['function'] . $url['params'];
 	}
 
 }

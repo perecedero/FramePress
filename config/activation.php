@@ -6,13 +6,11 @@
 */
 
 
-	function on_activation ()
-	{
+	function on_activation () {
 
 	}
 
-	function on_deactivation ()
-	{
+	function on_deactivation () {
 
 	}
 

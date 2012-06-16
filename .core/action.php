@@ -14,10 +14,10 @@
  * @since         0.1
  * @license       GPL v2 License
 
- * IMPORTANT NOTE: class name will be rewrited as w2pf_action_[something] (see w2pf_init.php file), to get unique class names between plugins.
+ * IMPORTANT NOTE: class name will be rewrited as action_[prefix] (see init.php file), to get unique class names between plugins.
  */
 
-class w2pf_action_test {
+class action_test1 {
 
 	/**
 	 * List of actions to add
@@ -33,7 +33,7 @@ class w2pf_action_test {
 	 * @var Object
 	 * @access public
 	 */
-	var $view= null;
+	var $View= null;
 
 	/**
 	 * local instance of Path Class
@@ -41,7 +41,7 @@ class w2pf_action_test {
 	 * @var Object
 	 * @access public
 	 */
-	var $path= null;
+	var $Path= null;
 
 	/**
 	 * local instance of Config Class
@@ -49,7 +49,7 @@ class w2pf_action_test {
 	 * @var Object
 	 * @access public
 	 */
-	var $config= null;
+	var $Config= null;
 
 	/**
 	 * Name of controller that handles a specific call
@@ -90,10 +90,10 @@ class w2pf_action_test {
 	 * @param object $view Reference to View class instance created on Core class
 	 * @access public
 	 */
-	function __construct(&$path, &$view, &$config) {
-		$this->path = $path;
-		$this->view = $view;
-		$this->config = $config;
+	function __construct( &$path, &$view, &$config ) {
+		$this->Path = $path;
+		$this->View = $view;
+		$this->Config = $config;
 	}
 
 	/**
@@ -115,7 +115,7 @@ class w2pf_action_test {
 			$tag = $action['tag'];
 			if($action['is_ajax']){$tag='wp_ajax_'.$tag;}
 
-			add_action($tag, array($this, $action['handler'].'AYNIL'.$action['function']), $action['priority'], $action['accepted_args']);
+			add_action($tag, array($this, $action['controller'].'AYNIL'.$action['function']), $action['priority'], $action['accepted_args']);
 		}
 	}
 
@@ -132,33 +132,64 @@ class w2pf_action_test {
 
 		$parts = explode('AYNIL', $name);
 
-		$this->view->controller_file = $this->controller_file = $this->path->Dir['ACTIONS'] . DS . $parts[0].'.php';
-		$this->view->controller_name = $this->controller_class = ucfirst ($parts[0]);
-		$this->controller_class =  ucfirst ($this->config->read('prefix')).$this->controller_class;
-		$this->view->function_name = $this->controller_method = $parts[1];
+		$this->View->controller_file = $this->controller_file = $this->Path->Dir['ACTIONS'] . DS . $parts[0].'.php';
+		$this->View->controller_name = $this->controller_class = ucfirst ($parts[0]);
+		$this->controller_class =  ucfirst ($this->Config->read('prefix')).$this->controller_class;
+		$this->View->function_name = $this->controller_method = $parts[1];
+
+		@ini_set('display_errors', true);
+		set_error_handler('framePress_1234567_eh');
 
 		if(!file_exists($this->controller_file))
 		{
-			$this->view->draw_error('missing_file');
+			$fileRelativePath = substr( $this->controller_file, strpos($this->controller_file, $this->Path->Dir['N_ROOT']), strlen($this->controller_file));
+			$this->View->set( 'fileRelativePath', $fileRelativePath );
+			$this->View->set( 'fileClassName', $this->controller_class );
+			$this->View->draw_error('missing_file');
+			restore_error_handler();
+			@ini_set('display_errors', false);
+			return false;
 		}
 
 		require_once ($this->controller_file);
 
 		if (!class_exists($this->controller_class))
 		{
-			$this->view->draw_error('missing_controller');
+			$fileRelativePath = substr( $this->controller_file, strpos($this->controller_file, $this->Path->Dir['N_ROOT']), strlen($this->controller_file));
+			$this->View->set( 'fileRelativePath', $fileRelativePath );
+			$this->View->set( 'fileClassName', $this->controller_class );
+			$this->View->draw_error('missing_controller');
+
+			restore_error_handler();
+			@ini_set('display_errors', false);
+			return false;
 		}
 
 		$this->controller_object = new $this->controller_class();
 
 		if(!method_exists($this->controller_object, $this->controller_method))
 		{
-			$this->view->draw_error('missing_function');
+			$fileRelativePath = substr( $this->controller_file, strpos($this->controller_file, $this->Path->Dir['N_ROOT']), strlen($this->controller_file));
+			$this->View->set( 'fileRelativePath', $fileRelativePath );
+			$this->View->set( 'fileClassName', $this->controller_class );
+			$error = $this->View->draw_error('missing_function', true); 
+			$this->View->draw_error('missing_function', true);
+
+			restore_error_handler();
+			@ini_set('display_errors', false);
+			return false;
 		}
 
 		if(method_exists($this->controller_object, 'before_filter')) { call_user_func(array($this->controller_object, 'before_filter')); }
 		call_user_func_array(array($this->controller_object, $this->controller_method) , $args);
 		if(method_exists($this->controller_object, 'after_filter')) { call_user_func(array($this->controller_object, 'after_filter')); }
+
+		//$this->View->draw();
+
+		restore_error_handler();
+		@ini_set('display_errors', false);
+
+		//@ob_end_flush();
 
 	}
 }

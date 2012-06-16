@@ -4,13 +4,17 @@ This framework will help you to develop a plugin quickly and easly.
 It work as a MVC Framework, Without the Model part, because WP is responsable for those actions
 It permit the use of headers, and it has a session emulation
 
-
-Framework usage
--------
-See HOWTO file
+Documentation under construccion
+--------------------------------
 
 History
 -------
+
+stable 
+
+I18n integration
+polished functions
+better in script documentation
 
 beta 2
 

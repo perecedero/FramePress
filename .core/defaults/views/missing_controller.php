@@ -1,21 +1,41 @@
+<style>
+	.wrap p {font-size:14px;}
+	.wrap p b {font-size:17px;}
+	.wrap pre {float:left; width:15px; background: #969696; color:#fff; font-family: Consolas,Monaco,monospace; padding: 5px; border-radius: 5px 0px 0px 5px; font-size: 18px; line-height: 30px;}
+	.wrap pre.code {width:600px;  border-radius: 0px 5px 5px 0px; background: #2E3436;}
+	.wrap pre b {color: #90EE90; font-weight: bold; font-size:20px;}
+</style>
+
+
 <div class="wrap">
-	<p>
-		<h2>Missing Controller</h2>
-		<p>Controller <b><?echo ucfirst($this->path->config->read('prefix')); ?><?echo $this->controller_name; ?></b> not found</p>
-		<p>Create it on <b><?echo $this->controller_file; ?></b></p>
-	</p>
 
-	<p>
-		<h2>Example</h2>
-		<p>
-			<pre>
-&lt;?php<br/>
-	Class <?echo ucfirst($this->path->config->read('prefix')); ?><?echo $this->controller_name; ?> { <br/>
-		function index () { }
-	}<br/>
+<h2>Missing Controller</h2>
+<p >Class <b><?echo $fileClassName; ?></b> not found</p>
+<p >Create it on <b><?echo $fileRelativePath;  ?></b></p>
+
+
+<h2>Example</h2>
+<pre>
+1
+2
+3
+4
+5
+6
+7
+</pre>
+<pre class="code">
+&lt;?php
+	Class <b><?echo $fileClassName; ?></b> { 
+		function index () {
+			//Magic
+		}
+	}
 ?&gt;
-			</pre>
-		</p>
-	</p>
+</pre>
+<div style="clear:both;"></div>
 
+<p>
+	Note: prefix <b><? echo ucfirst($this->Config->read('prefix')); ?></b> must be added to your class's name to get unique names in the ecosystem
+<p>
 </div>

@@ -9,16 +9,15 @@
  * Licensed under The GPL v2 License
  * Redistributions of files must retain the above copyright notice.
  *
- * @link				none yet
- * @package       core
- * @subpackage    core.core
- * @since         0.1
- * @license       GPL v2 License
+ * @link			none yet
+ * @package			core
+ * @subpackage		core.FramePress
+ * @license			GPL v2 License
 
- * IMPORTANT NOTE: class name will be rewrited as w2pf_core_[something] (see w2pf_init.php file), to get unique class names between plugins.
+ * IMPORTANT NOTE: class name will be rewrited as core_[prefix] (see init.php file), to get unique class names between plugins.
  */
 
-class w2pf_core_test {
+class core_test1 {
 
 	/**
 	 * Instance of Path Class
@@ -98,32 +97,48 @@ class w2pf_core_test {
 	 * @param string $main_file Name of the main file
 	 * @access public
 	*/
-	function __construct($main_file=null) {
+	function __construct( $main_file = null ) {
 
-		$this->main_file = $main_file;
 		global $FP_CONFIG;
 
-		//Require all core libs
-		$core_libs = array ('w2pf_path', 'w2pf_view', 'w2pf_msg', 'w2pf_page', 'w2pf_action', 'w2pf_html', 'w2pf_session', 'w2pf_config');
+		$this->main_file = $main_file;
+
+		//core modules
+		$core_libs = array ('path', 'view', 'msg', 'page', 'action', 'html', 'session', 'config');
+		$core_libs_var = array ('Path', 'View', 'Msg', 'Page', 'Action', 'Html', 'Session', 'Config');
+
+		//load core modules classes && create vars
 		for ( $i = 0; $i < count($core_libs); $i++ ){
 			require_once ( $core_libs[ $i ] . '.php' );
-			$$core_libs[ $i ] = $core_libs[ $i ] . '_' . $FP_CONFIG['prefix'];
+			$$core_libs_var[ $i ] = $core_libs[ $i ] . '_' . $FP_CONFIG['prefix'];
 		}
 
 		//create an intance of each core lib
-		$this->Msg =& new $w2pf_msg();
-		$this->Path =& new $w2pf_path($main_file);
-		$this->Config =& new $w2pf_config($this->Path, $FP_CONFIG);
-		$this->Html =& new $w2pf_html($this->Path);
-		$this->Session =& new $w2pf_session($this->Path, $this->Config);
-		$this->View =& new $w2pf_view($this->Path, $this->Msg, $this->Html);
-		$this->Action =& new $w2pf_action($this->Path, $this->View, $this->Config);
-		$this->Page =& new $w2pf_page($this->Path, $this->View, $this->Config);
-		$this->Path->setconf($this->Config);
+		$this->Config =& new $Config( $FP_CONFIG );
 
+		$this->Path =& new $Path( $main_file, $this->Config );
+
+		$this->Session =& new $Session( $this->Config );
+
+		$this->Html =& new $Html( $this->Path );
+
+		$this->Msg =& new $Msg($this->Path, $this->Config, $this->Html );
+
+		$this->View =& new $View( $this->Path, $this->Config, $this->Html, $this->Msg );
+
+		$this->Action =& new $Action( $this->Path, $this->View, $this->Config );
+
+		$this->Page =& new $Page( $this->Path, $this->View, $this->Config );
+
+		//register activation and deactivation functions
 		register_activation_hook(basename(dirname($main_file)) . DS . basename($main_file), array($this,'activation'));
 		register_deactivation_hook(basename(dirname($main_file)) . DS . basename($main_file), array($this, 'deactivation'));
+
+		//capture output
 		add_action('admin_init', array($this, 'capture_output'));
+
+		//load languages
+		add_action('init', array($this, 'load_languages'));
 	}
 
 	/**
@@ -133,8 +148,19 @@ class w2pf_core_test {
 	 * @access public
 	*/
 	function capture_output () {
-
 		ob_start();
+	}
+
+	/**
+	 * Start the output capture to can use headers on the plugin
+	 *
+	 * @return void
+	 * @access public
+	*/
+	function load_languages () {
+		if( $this->Config->read('use.i18n') ) {
+			load_plugin_textdomain($this->Config->read('prefix'), false, $this->Path->Dir['LANG'] );
+		}
 	}
 
 	/**
@@ -163,6 +189,18 @@ class w2pf_core_test {
 	}
 
 	/**
+	 * Perform a import of a file on lib folder
+	 *
+	 * @param string $name the place for redirect
+	 * @return void
+	 * @access public
+	*/
+	function import ($name) {
+
+		require_once ($this->Path->Dir['LIB'] . DS . $name);
+	}
+
+	/**
 	 * Perform a redirect using headers
 	 *
 	 * @param array $url The place for redirect
@@ -173,28 +211,15 @@ class w2pf_core_test {
 	function redirect ($url=array(), $exit= true) {
 
 		ob_end_clean();
+
 		$href = html_entity_decode($this->Path->router($url));
-		if($exit)
-		{
+
+		if($exit) {
 			header('Location: '.$href);
 			exit;
-		}
-		else
-		{
+		} else {
 			$this->kick_user($href);
 		}
-	}
-
-	/**
-	 * Perform a import of a file on lib folder
-	 *
-	 * @param string $name the place for redirect
-	 * @return void
-	 * @access public
-	*/
-	function import ($name) {
-
-		require_once ($this->Path->Dir['LIB'] . DS . $name);
 	}
 
 	/**

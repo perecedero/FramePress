@@ -1,18 +1,38 @@
-<div class="wrap">
-	<p>
-		<h2>Missing function</h2>
-		<p>Function <b><?echo $this->function_name; ?></b> not found</p>
-		<p>Create it on <b><?echo $this->controller_file; ?></b></p>
-	</p>
+<style>
+	.wrap p {font-size:14px;}
+	.wrap p b {font-size:17px;}
+	.wrap pre {float:left; width:15px; background: #969696; color:#fff; font-family: Consolas,Monaco,monospace; padding: 5px; border-radius: 5px 0px 0px 5px; font-size: 18px; line-height: 30px;}
+	.wrap pre.code {width:600px;  border-radius: 0px 5px 5px 0px; background: #2E3436;}
+	.wrap pre b {color: #90EE90; font-weight: bold; font-size:20px;}
+</style>
 
-	<p>
-		<h2>Example</h2>
-		<p>
-			&nbsp;&nbsp;Class <?echo $this->controller_name; ?> { <br/>
-				&nbsp;&nbsp;&nbsp;&nbsp; function <?echo $this->function_name; ?> () { <br/>
-				&nbsp;&nbsp;&nbsp;&nbsp;} <br/>
-			&nbsp;&nbsp;}
-		</p>
-	</p>
+
+<div class="wrap">
+	<h2>Missing function</h2>
+	<p>Function <b><?echo $this->function_name; ?></b> not found</p>
+	<p>Add it to <b><?echo $fileRelativePath;  ?></b></p>
+
+
+
+<h2>Example</h2>
+<pre>
+1
+2
+3
+4
+5
+6
+7
+</pre>
+<pre class="code">
+&lt;?php
+	Class <?echo $fileClassName; ?> { 
+		function <b><?echo $this->function_name; ?></b> () {
+			//Magic
+		}
+	}
+?&gt;
+</pre>
+<div style="clear:both;"></div>
 
 </div>

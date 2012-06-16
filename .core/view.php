@@ -15,10 +15,10 @@
  * @since			0.1
  * @license			GPL v2 License
 
- * IMPORTANT NOTE: class name will be rewrited as w2pf_view_[something] (see w2pf_init.php file), to get unique class names between plugins.
+ * IMPORTANT NOTE: class name will be rewrited as view_[prefix] (see init.php file), to get unique class names between plugins.
  */
 
-class w2pf_view_test {
+class view_test1 {
 
 	/**
 	 * List of variables to pass to the view
@@ -84,7 +84,15 @@ class w2pf_view_test {
 	 * @var Object
 	 * @access public
 	*/
-	var $path = null;
+	var $Path = null;
+
+	/**
+	 * local instance of Config Class
+	 *
+	 * @var Object
+	 * @access public
+	 */
+	var $Config= null;
 
 	/**
 	 * local instance of Msg Class
@@ -92,7 +100,7 @@ class w2pf_view_test {
 	 * @var Object
 	 * @access public
 	*/
-	var $msg = null;
+	var $Msg = null;
 
 	/**
 	 * local instance of Html Class
@@ -100,7 +108,7 @@ class w2pf_view_test {
 	 * @var Object
 	 * @access public
 	*/
-	var $html = null;
+	var $Html = null;
 
 	/**
 	 * Constructor.
@@ -110,11 +118,12 @@ class w2pf_view_test {
 	 * @param object $html Reference to Html class instance created on Core class
 	 * @access public
 	 */
-	function __construct(&$path, &$msg, &$html){
+	function __construct( &$path, &$config, &$html, &$msg ){
 
-		$this->path = $path;
-		$this->msg = $msg;
-		$this->html = $html;
+		$this->Path = $path;
+		$this->Config = $config;
+		$this->Msg = $msg;
+		$this->Html = $html;
 	}
 
 	/**
@@ -150,20 +159,23 @@ class w2pf_view_test {
 	*/
 	function draw () {
 
-		$this->view_file = $this->path->Dir['VIEW'] . DS . strtolower($this->controller_name) . DS . $this->function_name . ".php";
+		$this->view_file = $this->Path->Dir['VIEW'] . DS . strtolower($this->controller_name) . DS . $this->function_name . ".php";
+
 		if(!file_exists($this->view_file)){
-			$this->draw_error('missing_view'); exit;
+
+			$x1x_fileRelativePath = substr( $this->view_file, strpos($this->view_file, $this->Path->Dir['N_ROOT']), strlen($this->view_file));
+			$this->set( 'fileRelativePath', $x1x_fileRelativePath );
+			$this->draw_error('missing_view'); return false;
 		}
 
-		$this->layout_file = $this->path->Dir['VIEW'] . DS . 'layouts' . DS . $this->layout . ".php";
-		if(!file_exists($this->path->Dir['VIEW'] . DS . 'layouts' . DS . $this->layout . ".php")) {
-			$this->layout_file = $this->path->Dir['CORE'] . DS . 'defaults' . DS . 'views' . DS . "default.php";
+		$this->layout_file = $this->Path->Dir['VIEW'] . DS . 'layouts' . DS . $this->layout . ".php";
+		if(!file_exists($this->layout_file)) {
+			$this->layout_file = $this->Path->Dir['D_VIEW'] . DS . "default.php";
 		}
 
 		ob_start();
 			//import variables
-			if ($this->vars)
-			{
+			if ($this->vars) {
 				foreach ($this->vars as $key=>$value) {$$key = $value; }$this->vars = array();
 			}
 
@@ -180,10 +192,10 @@ class w2pf_view_test {
 			require_once ($this->layout_file);
 
 			//save all
-			$buffer = ob_get_contents();
+			$x1x_buffer = ob_get_contents();
 		ob_end_clean();
 
-		echo $buffer;
+		echo $x1x_buffer;
 	}
 
 	/**
@@ -192,12 +204,17 @@ class w2pf_view_test {
 	 * @return void
 	 * @access public
 	*/
-	function draw_error ($type = null) {
+	function draw_error ($x1x_type = null, $x1x_return = false) {
+
+		//import variables
+		if ($this->vars) {
+			foreach ($this->vars as $key=>$value) {$$key = $value; }$this->vars = array();
+		}
 
 		ob_start();
 			// load view
-			$file = $this->path->Dir['CORE'] . DS . 'defaults' . DS . 'views' . DS . $type.".php";
-			require_once ($file);
+			$x1x_file = $this->Path->Dir['D_VIEW'] . DS . $x1x_type.".php";
+			require_once ($x1x_file);
 
 			//save all
 			$content_for_layout = ob_get_contents();
@@ -205,16 +222,16 @@ class w2pf_view_test {
 
 		ob_start();
 			//load layout's
-			$file = $this->path->Dir['CORE'] . DS . 'defaults' . DS . 'views' . DS . "default.php";
-			require_once ($file);
+			$x1x_file = $this->Path->Dir['D_VIEW'] . DS . "default.php";
+			require_once ($x1x_file);
 
 			//save all
-			$buffer = ob_get_contents();
+			$x1x_buffer = ob_get_contents();
 		ob_end_clean();
 
-		echo $buffer;
+		if ($x1x_return == true) { return $x1x_buffer; }
 
-		exit;
+		echo $x1x_buffer;
 	}
 }
 
