@@ -89,7 +89,7 @@ class FramePress_001
 			'layout' => $fpl_fullpath . DS . 'views' . DS . 'layouts',
 			'mail_view' => $fpl_fullpath . DS . 'views' . DS . 'emails',
 			'lib' => $fpl_fullpath . DS . 'lib',
-			'd_lib' => $fpl_fullpath . DS . '.core' . DS . 'defaults' . DS . 'lib',
+			'd_lib' => $fpl_fullpath . DS . 'core' . DS . 'defaults' . DS . 'lib',
 			'lang' => $fpl_foldername . DS . 'languages',
 			'tmp' => $fpl_foldername . DS . 'tmp',
 			'resources' => $fpl_fullpath . DS . 'resources',
@@ -520,9 +520,9 @@ class FramePress_001
 	 * @return void
 
 	*/
-	public function viewSet ($varName, $value)
+	public function viewSet ($varName, $value, $context = 'FPL')
 	{
-		$this->status['view.vars'][$varName] = $value;
+		$this->status['view.vars'][$context][$varName] = $value;
 	}
 
 	/**
@@ -541,7 +541,7 @@ class FramePress_001
 	 *
 	 * @return mixed: false on failure, string on $print false, void in $print true
 	*/
-	public function drawView ($file = null, $print = true)
+	public function drawView ($file = null, $print = true, $context = 'FPL')
 	{
 		if($file){
 			if(is_file($file)){
@@ -570,8 +570,8 @@ class FramePress_001
 
 		@ob_start();
 			//import variables
-			if ($this->status['view.vars']) {
-				foreach ($this->status['view.vars'] as $key=>$value) { $$key = $value; }
+			if ($this->status['view.vars'][$context]) {
+				foreach ($this->status['view.vars'][$context] as $key=>$value) { $$key = $value; }
 			}
 
 			//load view
@@ -742,18 +742,20 @@ class FramePress_001
 	 * @param string $name the place for redirect
 	 * @return void
 	*/
-	public function import ($name)
+	public function import ($name, $return_path)
 	{
 		$file =  $this->path['lib'] . DS . $name;
 		$default_file =  $this->path['d_lib'] . DS . $name;
 
 		if(file_exists ($file) ) {
-			require_once($file);
+			if ($return_path) { return $file; }
+			return require_once($file);
 		}elseif(file_exists ($default_file)){
-			require_once($default_file);
-		}else{
-			//no existe la libreria
+			if ($return_path) { return $default_file; }
+			return require_once($default_file);
 		}
+
+		return false;
 	}
 
 	/**
@@ -803,8 +805,20 @@ class FramePress_001
 		$defaults = array('menu_type' => null, 'controller' => null, 'function'=> null, 'params'=> '');
 		$url = array_merge($defaults, $url);
 
+		//search menu slug
+		if($url['controller']){
+			$aux_slug = $this->config['prefix'] . '-' . $url['controller'];
+			foreach ($this->pages as $type => $pages){
+				for($i=0; $i<count($pages); $i++){
+					if (strpos($aux_slug, $pages[$i]['menu.slug']) >= 0) {
+						$url['menu.slug'] = $pages[$i]['menu.slug'];
+					}
+				}
+			}
+		}
+
 		//correct values
-		$url['controller'] = ($url['controller'])? $this->config['prefix'] . '-' . $url['controller'] : $_GET['page'];
+		$url['controller'] = ($url['controller'])? $url['menu.slug'] : $_GET['page'];
 		$url['function'] = ($url['function'])?'&amp;function='.$url['function']:'';
 
 		//parameter to the funcion
@@ -863,7 +877,9 @@ class FramePress_001
 	}
 
 }//end class
-}//end if class exists
 
 //Export framework className
 $GLOBALS["FramePress"] = 'FramePress_001';
+$FramePress = 'FramePress_001';
+
+}//end if class exists

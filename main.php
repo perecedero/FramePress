@@ -1,8 +1,8 @@
 <?php
 	/*
-	Plugin Name: 
+	Plugin Name: Test Plugin
 	Plugin URI: 
-	Description: 
+	Description:  -----
 	Author: 
 	Version:
 	Author URI: 
@@ -43,22 +43,22 @@
 * 	--------------------------------------------------------------------------------------------------------------------
 */
 
-/*
+
 	//Admin pages to add
 	$wp_pages = array (
 		'menu' => array (
 			array (
 				'page.title' => 'framepress, easier impossibru',
-				'menu.title' => 'Peter test',
+				'menu.title' => 'FP Test',
 				'capability' => 'administrator',
-				'controller' => 'main',
-				'function' => 'index3',
-				//'icon' => 'logo16.png',
+				'controller' => 'test',
+				'function' => 'testEmail',
+				'icon' => 'logo16.png',
 			),
 		),
 	);
 	$test->pages($wp_pages);
-*/
+
 
 
 /**
