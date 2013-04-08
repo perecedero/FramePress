@@ -1,53 +1,81 @@
 <?php
-/*
-Plugin Name: FramePress test
-Plugin URI: http://example.com
-Description:  -
-Author: -
-Version: -
-Author URI: http://example.com
-*/
+	/*
+	Plugin Name: 
+	Plugin URI: 
+	Description: 
+	Author: 
+	Version:
+	Author URI: 
+	*/
 
 	//init framework
-	require_once('.core/init.php');
+	require_once( 'core/FPL.php' );
 	global $FramePress;
 
-	//Create a global instance of framepress, choose a unique name
-	global $sfp;
-	$sfp = new $FramePress(__FILE__);
+/**
+*	Create your global instance of framepress, and configure it
+*	see "Creating and configuring your instance of framepress" documentation
+* 	--------------------------------------------------------------------------------------------------------------------
+*/
+	global $test;
+	$test = new $FramePress(__FILE__, array(
+		'prefix' => 'testprefix',
+	));
 
+
+/**
+*	Modifing / Adding paths
+*	see "Adding custom Paths" documentation
+* 	--------------------------------------------------------------------------------------------------------------------
+*/
+
+/*
+	$test->mergePaths(array(
+		'superlibs' => $test->path['lib'] . DS . 'super';
+		'duperlibs' => $test->path['lib'] . DS . 'super' . DS . 'duper';
+	));
+*/
+
+
+/**
+*	Examples for admin pages and actios
+* 	see "Adding admin pages" documentation
+* 	--------------------------------------------------------------------------------------------------------------------
+*/
+
+/*
 	//Admin pages to add
 	$wp_pages = array (
 		'menu' => array (
 			array (
 				'page.title' => 'framepress, easier impossibru',
-				'menu.title' => 'framepress',
+				'menu.title' => 'Peter test',
 				'capability' => 'administrator',
 				'controller' => 'main',
-				'function' => 'index',
-				'icon' => 'logo16.png',
+				'function' => 'index3',
+				//'icon' => 'logo16.png',
 			),
 		),
 	);
+	$test->pages($wp_pages);
+*/
+
+
+/**
+*	Examples of Actions / filters
+* 	see "Adding actions/filters" documentation
+* 	--------------------------------------------------------------------------------------------------------------------
+*/
 
 /*
-	//actions/filters to add
+	//action/filters
 	$wp_actions = array (
 		array(
 			'tag' => 'init',
 			'controller' => 'main',
-			'function' => 'init_handler',
-		),
-		array(
-			'tag' => 'customAction',
-			'controller' => 'main',
-			'function' => 'custom_handler',
+			'function' => 'actionA',
 		),
 	);
+	$test->actions($wp_actions);
 */
-
-	$sfp->Page->add($wp_pages);
-	//$sfp->Action->add($wp_actions);
-
-
 ?>

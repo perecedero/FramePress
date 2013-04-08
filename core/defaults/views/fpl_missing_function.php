@@ -6,11 +6,12 @@
 	.wrap pre b {color: #90EE90; font-weight: bold; font-size:20px;}
 </style>
 
-<div class="wrap">
 
-<h2>Missing file</h2>
-<p>Controller file <b><?echo strtolower($this->controller_name); ?>.php</b> not found</p>
-<p>Create it on <b><?echo $fileRelativePath; ?></b></p>
+<div class="wrap">
+	<h2>Missing function</h2>
+	<p>Function <b><?php echo $fileFunctionName; ?></b> not found</p>
+	<p>Add it to <b><?php echo $fileRelativePath;  ?></b></p>
+
 
 
 <h2>Example</h2>
@@ -25,8 +26,8 @@
 </pre>
 <pre class="code">
 &lt;?php
-	Class <b><?echo $fileClassName; ?></b> { 
-		function index () {
+	Class <?php echo $fileClassName; ?> { 
+		function <b><?php echo $fileFunctionName; ?></b> () {
 			//Magic
 		}
 	}
@@ -34,7 +35,4 @@
 </pre>
 <div style="clear:both;"></div>
 
-<p>
-	Note: prefix <b><? echo ucfirst($this->Config->read('prefix')); ?></b> must be added to your class's name to get unique names in the ecosystem
-<p>
 </div>

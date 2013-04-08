@@ -8,10 +8,10 @@
 
 
 <div class="wrap">
-	<h2>Missing function</h2>
-	<p>Function <b><?echo $this->function_name; ?></b> not found</p>
-	<p>Add it to <b><?echo $fileRelativePath;  ?></b></p>
 
+<h2>Missing Controller</h2>
+<p >Class <b><?php echo $fileClassName; ?></b> not found</p>
+<p >Create it on <b><?php echo $fileRelativePath;  ?></b></p>
 
 
 <h2>Example</h2>
@@ -26,8 +26,8 @@
 </pre>
 <pre class="code">
 &lt;?php
-	Class <?echo $fileClassName; ?> { 
-		function <b><?echo $this->function_name; ?></b> () {
+	Class <b><?php echo $fileClassName; ?></b> { 
+		function index () {
 			//Magic
 		}
 	}
@@ -35,4 +35,7 @@
 </pre>
 <div style="clear:both;"></div>
 
+<p>
+	Note: prefix <b><?php echo ucfirst($this->config['prefix']); ?></b> must be added to your class's name to get unique names in the ecosystem
+<p>
 </div>
