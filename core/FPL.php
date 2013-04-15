@@ -152,6 +152,10 @@ class FramePress_001
 						'time' => strtotime('now'),
 						'data' => array(),
 					),
+					'Global' => array (
+						'time' => strtotime('now'),
+						'data' => array(),
+					),
 				);
 			}
 
@@ -394,7 +398,6 @@ class FramePress_001
 	 */
 	public function __call($name, $fargs=array())
 	{
-		
 		if($this->config['use.performance.log']){
 			$time = microtime(true);
 			$memA = memory_get_peak_usage(true);
@@ -742,7 +745,7 @@ class FramePress_001
 	 * @param string $name the place for redirect
 	 * @return void
 	*/
-	public function import ($name, $return_path)
+	public function import ($name, $return_path=null)
 	{
 		$file =  $this->path['lib'] . DS . $name;
 		$default_file =  $this->path['d_lib'] . DS . $name;
@@ -810,7 +813,7 @@ class FramePress_001
 			$aux_slug = $this->config['prefix'] . '-' . $url['controller'];
 			foreach ($this->pages as $type => $pages){
 				for($i=0; $i<count($pages); $i++){
-					if (strpos($aux_slug, $pages[$i]['menu.slug']) >= 0) {
+					if (strpos($pages[$i]['menu.slug'], $aux_slug) !== false) {
 						$url['menu.slug'] = $pages[$i]['menu.slug'];
 					}
 				}
