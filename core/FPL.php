@@ -22,8 +22,8 @@ if(!defined('DS')){define('DS', DIRECTORY_SEPARATOR);}
 
 
 //define core class
-if (!class_exists('FramePress_001')) {
-class FramePress_001 
+if (!class_exists('FramePress_002')) {
+class FramePress_002 
 {
 	public $config = array(
 		'prefix' => null,
@@ -58,6 +58,8 @@ class FramePress_001
 	public $pages = array();
 
 	public $actions = array();
+
+	public $shortcodes = array();
 
 	public $errorlog = array();
 
@@ -367,6 +369,21 @@ class FramePress_001
 	}
 
 	/**
+	 * Register plugin short codes
+	 *
+	 * @param array $actions
+	 * @return void
+	*/
+	public function shortcodes( $shortcodes=array() )
+	{
+		$this->shortcodes = $shortcodes;
+		foreach ($this->shortcodes as $action){
+			$tag = $action['tag'];
+			add_shortcode($tag, array($this, 'shortcode' . '__AYNIL__' . $action['controller'] . '__AYNIL__' . $action['function']));
+		}
+	}
+
+	/**
 	 * Register plugin actions/filters
 	 *
 	 * @param array $actions
@@ -402,15 +419,14 @@ class FramePress_001
 			$time = microtime(true);
 			$memA = memory_get_peak_usage(true);
 		}
-	
+
+		//parse info
+		$info = explode ('__AYNIL__', $name);
+
 		//check call type
-		$type = 'page';
-		if(strpos($name, 'action__AYNIL__') !== false) {
-			$type = 'action';
-		}
+		$type = $info[0];
 
 		//get needed info
-		$info = explode ('__AYNIL__', $name);
 		if($type == 'page' ){
 			$controller_requested = $info[1];
 			$function_requested = (isset($_GET['function']))? $_GET['function'] : $info[2];
@@ -484,6 +500,10 @@ class FramePress_001
 		//set controller selected layout to de view
 		if(isset($this->status['controller.object']->layout)) {
 			$this->status['view.layout.file'] =$this->path['layout'] . DS . $this->status['controller.object']->layout . '.php';
+		}
+
+		if($type == 'shortcode' ){
+			return call_user_func_array(array($this->status['controller.object'], $this->status['controller.method']) , $this->status['controller.method.args']);
 		}
 
 		if(method_exists($this->status['controller.object'], 'before_filter')) { call_user_func(array($this->status['controller.object'], 'before_filter')); }
@@ -578,7 +598,7 @@ class FramePress_001
 			}
 
 			//load view
-			@require_once ($this->status['view.file']);
+			require_once ($this->status['view.file']);
 
 			//save all
 			$content_for_layout = @ob_get_contents();
@@ -587,7 +607,7 @@ class FramePress_001
 
 		@ob_start();
 			//load layout's
-			@require_once ($this->status['view.layout.file']);
+			require_once ($this->status['view.layout.file']);
 
 			//save all
 			$fpl_buffer = @ob_get_contents();
@@ -882,7 +902,7 @@ class FramePress_001
 }//end class
 
 //Export framework className
-$GLOBALS["FramePress"] = 'FramePress_001';
-$FramePress = 'FramePress_001';
+$GLOBALS["FramePress"] = 'FramePress_002';
+$FramePress = 'FramePress_002';
 
 }//end if class exists
