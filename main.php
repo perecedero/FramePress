@@ -1,11 +1,11 @@
 <?php
 	/*
 	Plugin Name: Test Plugin
-	Plugin URI: 
+	Plugin URI:
 	Description:  -----
-	Author: 
+	Author:
 	Version:
-	Author URI: 
+	Author URI:
 	*/
 
 	//init framework
@@ -45,7 +45,7 @@
 
 
 	//Admin pages to add
-	$wp_pages = array (
+	$my_pages = array (
 		'menu' => array (
 			array (
 				'page.title' => 'framepress, easier impossibru',
@@ -57,25 +57,44 @@
 			),
 		),
 	);
-	$test->pages($wp_pages);
+	$test->pages($my_pages);
 
 
 
 /**
 *	Examples of Actions / filters
-* 	see "Adding actions/filters" documentation
+* 	see "Adding actions/filters handlers" documentation
 * 	--------------------------------------------------------------------------------------------------------------------
 */
 
 /*
 	//action/filters
-	$wp_actions = array (
+	$my_actions = array (
 		array(
 			'tag' => 'init',
-			'controller' => 'main',
+			'controller' => 'test',
 			'function' => 'actionA',
 		),
 	);
-	$test->actions($wp_actions);
+	$test->actions($my_actions);
 */
+
+/**
+*	Examples of shortcodes
+* 	see "Adding shortcodes handlers" documentation
+* 	--------------------------------------------------------------------------------------------------------------------
+*/
+
+/*
+	$my_shortcodes = array (
+		array(
+			'tag' => 'my_shortcode',   // will handle [my_shortcode]
+			'controller' => 'test',
+			'function' => 'shortA',
+		),
+
+	);
+	$test->shortcodes($my_shortcodes);
+*/
+
 ?>

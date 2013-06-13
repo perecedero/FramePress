@@ -23,7 +23,7 @@ if(!defined('DS')){define('DS', DIRECTORY_SEPARATOR);}
 
 //define core class
 if (!class_exists('FramePress_002')) {
-class FramePress_002 
+class FramePress_002
 {
 	public $config = array(
 		'prefix' => null,
@@ -93,7 +93,7 @@ class FramePress_002
 			'lib' => $fpl_fullpath . DS . 'lib',
 			'd_lib' => $fpl_fullpath . DS . 'core' . DS . 'defaults' . DS . 'lib',
 			'lang' => $fpl_foldername . DS . 'languages',
-			'tmp' => $fpl_foldername . DS . 'tmp',
+			'tmp' => $fpl_fullpath . DS . 'tmp',
 			'resources' => $fpl_fullpath . DS . 'resources',
 			'img' => $fpl_fullpath . DS . 'resources' . DS . 'img',
 			'img_url' => get_bloginfo( 'wpurl' ) . '/wp-content/plugins/' . $fpl_foldername . '/resources/img',
@@ -119,6 +119,7 @@ class FramePress_002
 			}
 			//if we can use sys tmp folder, the must use our TMP folder
 			if(!@is_writable($tempPath) || !@is_readable($tempPath)){
+				$tempPath = $this->path['tmp'];
 				if(!is_writable( $this->path['tmp'] ) ){
 					trigger_error("Can&#39;t write on <b>" . $this->path['tmp'] . "</b> folder, please change it's permissions to 777", E_USER_WARNING);
 				}
@@ -259,13 +260,13 @@ class FramePress_002
 		$this->sessionWrite('performance.log', array());
 		echo '<script>jQuery("#wpfooter").css("position", "relative")</script>';
 		foreach($log as $l){ echo '<div style="margin: 10px 0; font: 16px bold;">'.join(' -- ', $l).'</div>'; }
-		echo '<br>'; 
+		echo '<br>';
 	}
 
 	//------------------------------------------------------------------------------------------------------------------
 
 	/**
-	 * Merge default path with user defined one  
+	 * Merge default path with user defined one
 	 *
 	 * @param array $custom_path user defined path to use with the FramePress
 	 * @return void
@@ -397,12 +398,21 @@ class FramePress_002
 		foreach ($this->actions as $action){
 
 			$action = array_merge($default, $action);
-
 			$tag = $action['tag'];
-			if($action['is_ajax']){$tag='wp_ajax_'.$tag;}
 
-			add_action($tag, array($this, 'action' . '__AYNIL__' . $action['controller'] . '__AYNIL__' . $action['function']), $action['priority'], $action['accepted_args']);
+			if (!$action['is_ajax']) {
+				add_action($tag, array($this, 'action' . '__AYNIL__' . $action['controller'] . '__AYNIL__' . $action['function']), $action['priority'], $action['accepted_args']);
+			}
+
+			if( in_array($action['is_ajax'], array('both', 'private')) ){
+				add_action( 'wp_ajax_' . $tag, array($this, 'action' . '__AYNIL__' . $action['controller'] . '__AYNIL__' . $action['function']), $action['priority'], $action['accepted_args']);
+			}
+
+			if( in_array($action['is_ajax'], array('both', 'public')) ){
+				add_action( 'wp_ajax_nopriv_' . $tag, array($this, 'action' . '__AYNIL__' . $action['controller'] . '__AYNIL__' . $action['function']), $action['priority'], $action['accepted_args']);
+			}
 		}
+		return true;
 	}
 
 	/**
@@ -478,7 +488,7 @@ class FramePress_002
 			@ini_set('display_errors', false);
 			return false;
 		}
- 
+
 		$fpl_controllerclass = $this->status['controller.class'];
 		$this->status['controller.object'] = new $fpl_controllerclass();
 
@@ -491,7 +501,7 @@ class FramePress_002
 			if($type == 'action'){
 				$this->errorlog[] = $res;
 				add_action('wp_after_admin_bar_render', array($this, 'showErrorLog'));
-			}			
+			}
 			@restore_error_handler();
 			@ini_set('display_errors', false);
 			return false;
@@ -502,15 +512,12 @@ class FramePress_002
 			$this->status['view.layout.file'] =$this->path['layout'] . DS . $this->status['controller.object']->layout . '.php';
 		}
 
-		if($type == 'shortcode' ){
-			return call_user_func_array(array($this->status['controller.object'], $this->status['controller.method']) , $this->status['controller.method.args']);
-		}
 
 		if(method_exists($this->status['controller.object'], 'before_filter')) { call_user_func(array($this->status['controller.object'], 'before_filter')); }
-		call_user_func_array(array($this->status['controller.object'], $this->status['controller.method']) , $this->status['controller.method.args']);
+		$call_return = call_user_func_array(array($this->status['controller.object'], $this->status['controller.method']) , $this->status['controller.method.args']);
 		if(method_exists($this->status['controller.object'], 'after_filter')) { call_user_func(array($this->status['controller.object'], 'after_filter')); }
 
-		if ($type != 'action'){
+		if ($type == 'page'){
 			$this->drawView();
 			@ob_end_flush();
 		}
@@ -530,6 +537,10 @@ class FramePress_002
 				'memory' => (($memB - $memA) / 1024) . ' Kb'
 			);
 			$this->sessionWrite('performance.log', $log);
+		}
+
+		if($type == 'shortcode' ){
+			return $call_return;
 		}
 	}
 
@@ -765,16 +776,14 @@ class FramePress_002
 	 * @param string $name the place for redirect
 	 * @return void
 	*/
-	public function import ($name, $return_path=null)
+	public function import ($name)
 	{
 		$file =  $this->path['lib'] . DS . $name;
 		$default_file =  $this->path['d_lib'] . DS . $name;
 
 		if(file_exists ($file) ) {
-			if ($return_path) { return $file; }
 			return require_once($file);
 		}elseif(file_exists ($default_file)){
-			if ($return_path) { return $default_file; }
 			return require_once($default_file);
 		}
 
@@ -801,7 +810,7 @@ class FramePress_002
 				'memory' => 'x',
 			);
 			$this->sessionWrite('performance.log', $log);
-		}	
+		}
 
 		$href = html_entity_decode($url);
 
@@ -835,6 +844,7 @@ class FramePress_002
 				for($i=0; $i<count($pages); $i++){
 					if (strpos($pages[$i]['menu.slug'], $aux_slug) !== false) {
 						$url['menu.slug'] = $pages[$i]['menu.slug'];
+						if(!$url['menu_type']){ $url['menu_type'] = $type; }
 					}
 				}
 			}
@@ -889,7 +899,7 @@ class FramePress_002
 		'</div>';
 
 		add_action('wp_after_admin_bar_render', array($this, 'showErrorLog'));
-		return true; 
+		return true;
 	}
 
 	public function showErrorLog()
