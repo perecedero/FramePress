@@ -12,15 +12,21 @@ It work as a VC Framework, It permit the use of headers, and it has a session em
 
 * View-Controller like workflow
 * Predefined folder structure for better file organization
-* Helpers to add/handler admin pages/menus, actions and filters
 * Built-in features to easily develop controllers: simulate Sessions, use of http Headers,
 * Built-in features to easily add content to views: js, css, links and images
 * Built-in error and performance log
+* Built-in internationalization (i18n)
 * Super configurable (in a easy/fast way)
 
 ## Change Log
 
-### Version 2.0
+### Version 003
+improved shortcodes
+improved error handler and reporting
+included debug mode
+Fixed minor bugs
+
+### Version 002
 added shortcodes compatibility!
 modified action is\_ajax to can add wp\_ajax\_nopriv\_
 Fixed some bugs on the core action
@@ -29,6 +35,7 @@ added more examples to the test controller
 ## Basic usage
 
 ###Creating and configuring your instance of framepress
+
 
 	//file main.php
 
@@ -71,8 +78,13 @@ _Enable the use of emulated sessions for this plugin_
  * type bool
  * default true
 
-__use.performance.log__:
+__performance.log__:
 _Enable the log of time and memory usage for this plugin_
+ * type bool
+ * default false
+
+__debug__:
+_Enable error reporting_
  * type bool
  * default false
 
@@ -242,7 +254,7 @@ __(required)__ _predefined wordpress action or a custom tag_
 __controller__:
 __(required, string)__ _The controller used to handle the action_
 
-__function'__:
+__function__:
 __(required, string)__ _The function used to handle the action_
 
 __is\_ajax__:
@@ -281,6 +293,9 @@ __(required)__ _name of the shortcode to use_
 __controller__:
 __(required, string)__ _The controller used to handle the shortcode_
 
-__function'__:
+__function__:
 __(required, string)__ _The function used to handle the shortcode_
+
+__recursion__:
+__(optional, bool)__ _on true will parse shortcodes inside the shortcode_
 

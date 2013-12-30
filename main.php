@@ -2,7 +2,7 @@
 	/*
 	Plugin Name: Test Plugin
 	Plugin URI:
-	Description:  -----
+	Description:
 	Author:
 	Version:
 	Author URI:
