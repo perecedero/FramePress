@@ -38,7 +38,7 @@
 
 
 /**
-*	Examples for admin pages and actios
+*	Examples for admin pages
 * 	see "Adding admin pages" documentation
 * 	--------------------------------------------------------------------------------------------------------------------
 */

@@ -12,7 +12,7 @@
  * @since		 	beta 3
  * @license	   	GPL v2 License
  * @creator	   	Ausberto Huanca Vila, Ivan Lansky ( @perecedero )
- * 
+ *
  */
 
 //define core class
@@ -35,7 +35,7 @@ class FramePress_Email_001
 
 	/**
 	 * Local Reference to the framework core object
-	 * 
+	 *
 	 * @var object
 	 */
 	private $fp = null;
@@ -75,7 +75,7 @@ class FramePress_Email_001
 
 	/**
 	 * Save a variable to pass it to the template.
-	 * 
+	 *
 	 * @param string $varName
 	 * @param mixed $value
 	 * @access public
@@ -98,7 +98,7 @@ class FramePress_Email_001
 		$body = '';
 
 		//Gets the template with the merged vars
-		$msg = $this->fp->drawView($this->fp->path['mail'] . DS . $this->config['template'] . '.php' , false, 'mail');
+		$msg = $this->fp->drawView($this->fp->path['mail'] . DS . $this->config['template'] . '.php'  , false, 'mail');
 
 		//Makes the wordwrap only for plain text
 		if ($this->config['lineLength'] > 0 && strtolower($this->config['type']) == 'text') {
@@ -111,7 +111,7 @@ class FramePress_Email_001
 		} else {
 			trigger_error('Missing from address');
 		}
-	
+
 		if (count($this->config['cc']) > 0) {
 			$headers.='Cc: ' . join(', ', $this->config['cc']) . "\r\n";
 		}
@@ -147,7 +147,7 @@ class FramePress_Email_001
 		} else {
 			$headers .= $content_type;
 		}
-		
+
 		//put the body
 		$body .= $msg . "\r\n\r\n";
 
@@ -168,14 +168,14 @@ class FramePress_Email_001
 			$body .= '--mixed-' . $uid . '--';
 		}
 
-		
-		//echo '<pre>';echo $headers . $body; echo '</pre><br><br>'; 
+
+		//echo '<pre>';echo $headers . $body; echo '</pre><br><br>';
 		if (is_array($this->config['to'])){
 			$to = join(', ', $this->config['to']);
 		} else {
 			$to = $this->config['to'];
 		}
-		
+
 		return mail($to,  $this->config['subject'], $body, $headers);
 	}
 

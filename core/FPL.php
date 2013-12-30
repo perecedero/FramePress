@@ -22,18 +22,19 @@ if(!defined('DS')){define('DS', DIRECTORY_SEPARATOR);}
 
 
 //define core class
-if (!class_exists('FramePress_002')) {
-class FramePress_002
+if (!class_exists('FramePress_003')) {
+class FramePress_003
 {
 	public $config = array(
 		'prefix' => null,
 		'use.tmp' => false,
 		'use.i18n' => true,
 		'use.session' => true,
-		'use.performance.log' => false,
+		'performance.log' => false,
+		'debug' => false,
 	);
 
-	public $status = array(
+	public $status = array (
 		'plugin.mainfile' => null,
 		'plugin.fullpath' => null,
 		'plugin.foldername' => null,
@@ -71,6 +72,8 @@ class FramePress_002
 	*/
 	public function __construct($main_file, $config = array() )
 	{
+		register_shutdown_function (array($this, 'errorhandler'));
+
 		$fpl_fullpath = dirname($main_file);
 		$fpl_foldername = basename(dirname($main_file));
 
@@ -89,7 +92,6 @@ class FramePress_002
 			'view' => $fpl_fullpath . DS . 'views',
 			'd_view' => $fpl_fullpath . DS . 'core' . DS . 'defaults' . DS . 'views',
 			'layout' => $fpl_fullpath . DS . 'views' . DS . 'layouts',
-			'mail_view' => $fpl_fullpath . DS . 'views' . DS . 'emails',
 			'lib' => $fpl_fullpath . DS . 'lib',
 			'd_lib' => $fpl_fullpath . DS . 'core' . DS . 'defaults' . DS . 'lib',
 			'lang' => $fpl_foldername . DS . 'languages',
@@ -128,7 +130,7 @@ class FramePress_002
 			$this->path['systmp'] = ($tempPath)?$tempPath:$this->path['tmp'];
 		}
 
-		if ($this->config['use.performance.log']) {
+		if ($this->config['performance.log']) {
 			$this->config['use.session'] = true;
 		}
 
@@ -139,9 +141,15 @@ class FramePress_002
 			$id = null;
 			if(!isset($_COOKIE)) {$_COOKIE = array();}
 			foreach ($_COOKIE as $key => $value) {
-				if(preg_match("/^wordpress_logged_in_(.)*$/", $key)) { $id = md5($value); break; }
+				if(preg_match("/^framepress_session_id_(.)*$/", $key)) { $id = md5($value); break; }
+				elseif(preg_match("/^wordpress_logged_in_(.)*$/", $key)) { $id = md5($value); break; }
 			}
-			if (!$id){ $id = 'Global'; }
+			if (!$id){
+				$name = uniqid('framepress_session_id_', true);
+				$value = uniqid(base64_encode(time() . rand() ), true);
+				setcookie ($name, $value, time()+$this->session['time'], '/', null, false, true );
+				$id = md5($value);
+			}
 
 			$this->session['id'] = $id;
 
@@ -180,11 +188,12 @@ class FramePress_002
 			update_option ($this->session['name'],$session);
 		}
 
-		if ($this->config['use.performance.log']){
+		if ($this->config['performance.log']){
 			if(!$this->sessionCheck('performance.log')) {
 				$this->sessionWrite('performance.log', array());
 			}
 			add_action('in_admin_footer', array($this, 'showPerformanceLog'));
+			add_action('wp_footer', array($this, 'showPerformanceLog'));
 		}
 
 		//Load languages
@@ -197,7 +206,7 @@ class FramePress_002
 		register_deactivation_hook($this->status['plugin.foldername'] . DS . $this->status['plugin.mainfile'], array($this, 'deactivation'));
 
 		//Capture output
-		add_action('admin_init', array($this, 'capture_output'));
+		add_action('init', array($this, 'capture_output'));
 	}
 
 	//------------------------------------------------------------------------------------------------------------------
@@ -252,15 +261,6 @@ class FramePress_002
 		if (function_exists($function_name)){
 			call_user_func($function_name);
 		}
-	}
-
-	public function showPerformanceLog ()
-	{
-		$log = $this->sessionRead('performance.log');
-		$this->sessionWrite('performance.log', array());
-		echo '<script>jQuery("#wpfooter").css("position", "relative")</script>';
-		foreach($log as $l){ echo '<div style="margin: 10px 0; font: 16px bold;">'.join(' -- ', $l).'</div>'; }
-		echo '<br>';
 	}
 
 	//------------------------------------------------------------------------------------------------------------------
@@ -378,9 +378,14 @@ class FramePress_002
 	public function shortcodes( $shortcodes=array() )
 	{
 		$this->shortcodes = $shortcodes;
-		foreach ($this->shortcodes as $action){
-			$tag = $action['tag'];
-			add_shortcode($tag, array($this, 'shortcode' . '__AYNIL__' . $action['controller'] . '__AYNIL__' . $action['function']));
+		foreach ($this->shortcodes as $sc){
+
+			$short_defaults = array('tag'=> null, 'controller'=> null, 'function'=> null, 'recursion'=> null);
+			$sc = array_merge($short_defaults, $sc);
+
+			$recursion = ($sc['recursion'])? 'recursion' : '';
+
+			add_shortcode($sc['tag'] , array($this, 'shortcode' . '__AYNIL__' . $sc['controller'] . '__AYNIL__' . $sc['function'] . '__AYNIL__' . $recursion));
 		}
 	}
 
@@ -425,7 +430,7 @@ class FramePress_002
 	 */
 	public function __call($name, $fargs=array())
 	{
-		if($this->config['use.performance.log']){
+		if($this->config['performance.log']){
 			$time = microtime(true);
 			$memA = memory_get_peak_usage(true);
 		}
@@ -447,6 +452,7 @@ class FramePress_002
 			$args = $fargs;
 		}
 
+		//set call status
 		$this->status['controller.file'] = $this->path['controllers'] . DS . $controller_requested . '.php';
 		$this->status['controller.name'] = $controller_requested;
 		$this->status['controller.class'] = ucfirst($this->config['prefix']) . ucfirst($controller_requested);
@@ -455,64 +461,33 @@ class FramePress_002
 		$this->status['view.file'] = $this->path['view'] . DS . strtolower($controller_requested) . DS . $function_requested . '.php';
 		$this->status['view.layout.file'] = $this->path['d_view'] . DS . 'fpl_default_layout.php';
 
-		@ini_set('display_errors', true);
+		@ini_set('display_errors', false);
 		@set_error_handler(array($this, 'errorhandler'));
 
+		//check controller file
 		if(!file_exists($this->status['controller.file']) || !is_readable($this->status['controller.file'])) {
-			$fileRelativePath = substr( $this->status['controller.file'], strpos($this->status['controller.file'], $this->status['plugin.foldername']), strlen($this->status['controller.file']));
-			$this->viewSet('fileRelativePath', $fileRelativePath );
-			$this->viewSet('fileName', $this->status['controller.name'] );
-			$this->viewSet('fileClassName', $this->status['controller.class'] );
-			$res = $this->drawView('fpl_missing_file', ($type != 'action'));
-			if($type == 'action'){
-				$this->errorlog[] = $res;
-				add_action('wp_after_admin_bar_render', array($this, 'showErrorLog'));
-			}
-			@restore_error_handler();
-			@ini_set('display_errors', false);
-			return false;
+			return $this->callErrorHandler($type, 'fpl_missing_file');
 		}
 
+		//import controller
 		require_once($this->status['controller.file']);
-
 		if (!class_exists($this->status['controller.class'])){
-			$fileRelativePath = substr( $this->status['controller.file'], strpos($this->status['controller.file'], $this->status['plugin.foldername']), strlen($this->status['controller.file']));
-			$this->viewSet('fileRelativePath', $fileRelativePath );
-			$this->viewSet('fileClassName', $this->status['controller.class'] );
-			$res = $this->drawView('fpl_missing_controller', ($type != 'action'));
-			if($type == 'action'){
-				$this->errorlog[] = $res;
-				add_action('wp_after_admin_bar_render', array($this, 'showErrorLog'));
-			}
-			@restore_error_handler();
-			@ini_set('display_errors', false);
-			return false;
+			return $this->callErrorHandler($type, 'fpl_missing_controller');
 		}
 
+		//create the controller object
 		$fpl_controllerclass = $this->status['controller.class'];
 		$this->status['controller.object'] = new $fpl_controllerclass();
-
 		if(!method_exists($this->status['controller.object'], $this->status['controller.method'])){
-			$fileRelativePath = substr( $this->status['controller.file'], strpos($this->status['controller.file'], $this->status['plugin.foldername']), strlen($this->status['controller.file']));
-			$this->viewSet('fileRelativePath', $fileRelativePath );
-			$this->viewSet('fileClassName', $this->status['controller.class'] );
-			$this->viewSet('fileFunctionName', $this->status['controller.method'] );
-			$res = $this->drawView('fpl_missing_function', ($type != 'action'));
-			if($type == 'action'){
-				$this->errorlog[] = $res;
-				add_action('wp_after_admin_bar_render', array($this, 'showErrorLog'));
-			}
-			@restore_error_handler();
-			@ini_set('display_errors', false);
-			return false;
+			return $this->callErrorHandler($type, 'fpl_missing_function');
 		}
 
-		//set controller selected layout to de view
+		//set controller's selected layout to the view
 		if(isset($this->status['controller.object']->layout)) {
 			$this->status['view.layout.file'] =$this->path['layout'] . DS . $this->status['controller.object']->layout . '.php';
 		}
 
-
+		//make the call
 		if(method_exists($this->status['controller.object'], 'before_filter')) { call_user_func(array($this->status['controller.object'], 'before_filter')); }
 		$call_return = call_user_func_array(array($this->status['controller.object'], $this->status['controller.method']) , $this->status['controller.method.args']);
 		if(method_exists($this->status['controller.object'], 'after_filter')) { call_user_func(array($this->status['controller.object'], 'after_filter')); }
@@ -523,10 +498,8 @@ class FramePress_002
 		}
 
 		@restore_error_handler();
-		@ini_set('display_errors', false);
 
-
-		if($this->config['use.performance.log']){
+		if($this->config['performance.log']){
 			$endtime = microtime(true);
 			$memB = memory_get_peak_usage(true);
 
@@ -540,9 +513,28 @@ class FramePress_002
 		}
 
 		if($type == 'shortcode' ){
+
+			//fix for wpautop, that add <p> and <br> to the shortcode content
+			global $wp_filter;
+			foreach($wp_filter['the_content'] as $priority => $value ){
+				if(isset($value['wpautop'])){
+					unset($wp_filter['the_content'][$priority]['wpautop']);
+				}
+			}
+			//recursion
+			if($info[3] == 'recursion' ){
+				$call_return = do_shortcode($call_return);
+			}
+			return $call_return;
+		}
+
+		//filters can return things
+		if($type == 'action' ){
 			return $call_return;
 		}
 	}
+
+
 
 	//------------------------------------------------------------------------------------------------------------------
 
@@ -575,27 +567,26 @@ class FramePress_002
 	 *
 	 * @return mixed: false on failure, string on $print false, void in $print true
 	*/
-	public function drawView ($file = null, $print = true, $context = 'FPL')
+	public function drawView ($file = null, $flushoutput = true, $context = 'FPL')
 	{
 		if($file){
+
+			$fileDefExt = rtrim($file, '.php') . '.php';
+
 			if(is_file($file)){
 				$this->status['view.file'] = $file;
-			}else{
-				$this->status['view.file'] = $this->path['d_view'] . DS . $file . '.php';
+			}elseif(is_file($this->path['view'] . DS . $fileDefExt)){
+				$this->status['view.file'] = $this->path['view'] . DS . $fileDefExt;
+			}elseif(is_file($this->path['d_view'] . DS . $fileDefExt)){
+				$this->status['view.file'] = $this->path['d_view'] . DS . $fileDefExt;
+			} else {
+				$this->status['view.file'] = $fileDefExt;
 			}
 		}
 
 		if(!file_exists($this->status['view.file'])){
-			$fileRelativePath = substr( $this->status['view.file'], strpos($this->status['view.file'], $this->status['plugin.foldername']), strlen($this->status['view.file']));
-			$this->viewSet('fileRelativePath', $fileRelativePath );
-			$this->viewSet('fileFunctionName', $this->status['controller.method'] );
-			$this->drawView('fpl_missing_view');
-			$res = $this->drawView('fpl_missing_view', $print);
-			if(!$print){
-				$this->errorlog[] = $res;
-				add_action('wp_after_admin_bar_render', array($this, 'showErrorLog'));
-			}
-			return false;
+			$fileRelativePath = substr( $this->status['view.file'], strpos($this->status['view.file'], $this->status['plugin.foldername']));
+			return $this->callErrorHandler('view',  'fpl_missing_view', $fileRelativePath, $flushoutput);
 		}
 
 		if(!file_exists($this->status['view.layout.file'])) {
@@ -604,12 +595,12 @@ class FramePress_002
 
 		@ob_start();
 			//import variables
-			if ($this->status['view.vars'][$context]) {
+			if (isset($this->status['view.vars'][$context])) {
 				foreach ($this->status['view.vars'][$context] as $key=>$value) { $$key = $value; }
 			}
 
 			//load view
-			require_once ($this->status['view.file']);
+			require ($this->status['view.file']);
 
 			//save all
 			$content_for_layout = @ob_get_contents();
@@ -624,7 +615,7 @@ class FramePress_002
 			$fpl_buffer = @ob_get_contents();
 		@ob_end_clean();
 
-		if ($print){
+		if ($flushoutput){
 			echo $fpl_buffer;
 		}else{
 			return $fpl_buffer;
@@ -742,7 +733,11 @@ class FramePress_002
 			$opt .= ' '.$key.'=\''.$value.'\'';
 		}
 
-		$url = $this->path['img_url'] . '/' . $file;
+		if (strpos($file, 'http') === false) {
+			$url = $this->path['img_url'] . '/' . $file;
+		} else {
+			$url = $file;
+		}
 		return "<img src='{$url}' {$opt}/>";
 	}
 
@@ -802,7 +797,7 @@ class FramePress_002
 
 		$url = $this->router($url);
 
-		if($this->config['use.performance.log']){
+		if($this->config['performance.log']){
 			$log = $this->sessionRead('performance.log');
 			$log[]=array(
 				'request' => 'redirect'. ': ' . $url,
@@ -879,8 +874,54 @@ class FramePress_002
 		return $base . 'page=' . $url['controller'] . $url['function'] . $url['params'];
 	}
 
-	public function errorhandler($level, $message, $file, $line, $context)
+	private function callErrorHandler ($type, $view = null, $fileRelativePath = null, $print_now = true )
 	{
+		if(!$fileRelativePath) {
+			$fileRelativePath = substr( $this->status['controller.file'], strpos($this->status['controller.file'], $this->status['plugin.foldername']));
+		}
+
+		$this->errorlog[]= array(
+			'level' => $this->mapErrorCode(E_USER_WARNING),
+			'message' =>$view. ' - controller name: '. $this->status['controller.name'] . ' class: ' . $this->status['controller.class'] . ' method: ' .  $this->status['controller.method'],
+			'file'=>$fileRelativePath,
+			'line' => 0
+		);
+
+		if($this->config['debug'] ) {
+
+			if(in_array($type , array('action', 'shortcode'))) {
+
+					add_action('wp_after_admin_bar_render', array($this, 'showErrorLog'));
+					add_action('the_content', array($this, 'showErrorLog'));
+
+			} else {
+
+				$this->viewSet('fileRelativePath', $fileRelativePath );
+				$this->viewSet('fileName', $this->status['controller.name'] );
+				$this->viewSet('fileClassName', $this->status['controller.class'] );
+				$this->viewSet('fileFunctionName', $this->status['controller.method'] );
+
+				$this->drawView($view, $print_now);
+			}
+		}
+
+		@restore_error_handler();
+		@ini_set('display_errors', false);
+		return false;
+	}
+
+	public function errorhandler($level = null, $message=null, $file= null, $line = null, $context=null)
+	{
+		$e = error_get_last();
+		$print_now = false;
+
+		if (!$level && !$e) { //shotdown running and nothing found
+			return true;
+		} else if (!$level && $e) {
+			$print_now = true;
+			$level = $e['type']; $message=$e['message']; $file= $e['file']; $line = $e['line'];
+		}
+
 		//escape reports with @
 		if( 0 == ini_get( "error_reporting" ) || 0 == error_reporting() ){
 			return;
@@ -890,29 +931,87 @@ class FramePress_002
 		if(strpos($file, $this->status['plugin.fullpath']) === false){
 			return;
 		}
+		$this->errorlog[]= array('level' => $this->mapErrorCode($level),  'message' =>$message, 'file'=> $file, 'line' => $line);
 
-		$this->errorlog[]=
-		'<div style="padding:10px; margin:5px; width: 600px; color:565656; border:solid 1px #b6b6b6; background-color: #FFFFE0;">' .
-		'<div style="font-size:16px; margin-bottom:10px;">' .$message . '</div>' .
-		'<div style="font-size:14px;"> In <b>' . $file . '</b></div>' .
-		'<div style="font-size:14px;"> On line <b>' . $line . '</b></div>' .
-		'</div>';
-
-		add_action('wp_after_admin_bar_render', array($this, 'showErrorLog'));
+		if ($print_now) {
+			$this->showErrorLog();
+		} else {
+			add_action('wp_after_admin_bar_render', array($this, 'showErrorLog'));
+			add_action('wp_footer', array($this, 'showErrorLog'));
+		}
 		return true;
+	}
+
+	public function mapErrorCode($code) {
+		$error =  null;
+		switch ($code) {
+			case E_PARSE:
+			case E_ERROR:
+			case E_CORE_ERROR:
+			case E_COMPILE_ERROR:
+			case E_USER_ERROR:
+				$error = 'Error';
+				break;
+			case E_WARNING:
+			case E_USER_WARNING:
+			case E_COMPILE_WARNING:
+			case E_RECOVERABLE_ERROR:
+				$error = 'Warning';
+				break;
+			case E_NOTICE:
+			case E_USER_NOTICE:
+				$error = 'Notice';
+				break;
+			case E_STRICT:
+				$error = 'Strict';
+				break;
+			case E_DEPRECATED:
+			case E_USER_DEPRECATED:
+				$error = 'Deprecated';
+				break;
+		}
+		return $error;
 	}
 
 	public function showErrorLog()
 	{
-		$log = join("\n", $this->errorlog);
-		echo $log;
+		if(!$this->config['debug'] || !$this->errorlog) {
+			return;
+		}
+
+		echo '<div style="margin:0 auto; width:960px; padding-top: 50px;">';
+		foreach ($this->errorlog as $e ){
+
+			if ($e['level'] == 'Error') { $color = '#FFF3F7' ; }
+			elseif ($e['level'] == 'Warning') { $color = '#FFFFF3' ; }
+			elseif ($e['level'] == 'Notice') { $color = '#F4F3FF' ; }
+			elseif ($e['level'] == 'Strict') { $color = '#F9F9F9' ; }
+			elseif ($e['level'] == 'Deprecated') { $color = '#F9F9F9' ; }
+
+			echo '<div style="padding:10px; margin:15px; color:565656; border-left:solid 3px #1E90FF; background-color: '.$color.';">' .
+			'<div style="font-size:16px; margin-bottom:10px;">' .$e['message'] . '</div>' .
+			'<div style="font-size:14px;"> In <b>' . $e['file'] . '</b></div>' .
+			'<div style="font-size:14px;"> On line <b>' . $e['line'] . '</b></div>' .
+			'</div>';
+		}
+		echo '</div>';
 		$this->errorlog = array();
+
+	}
+
+	public function showPerformanceLog ()
+	{
+		$log = $this->sessionRead('performance.log');
+		$this->sessionWrite('performance.log', array());
+		echo '<script>jQuery("#wpfooter").css("position", "relative")</script>';
+		foreach($log as $l){ echo '<div style="margin: 10px 0; font: 16px bold;">'.join(' -- ', $l).'</div>'; }
+		echo '<br>';
 	}
 
 }//end class
 
 //Export framework className
-$GLOBALS["FramePress"] = 'FramePress_002';
-$FramePress = 'FramePress_002';
+$GLOBALS["FramePress"] = 'FramePress_003';
+$FramePress = 'FramePress_003';
 
 }//end if class exists
