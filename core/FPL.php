@@ -306,8 +306,8 @@ class FramePress_003
 				$page = array_merge($page_defaults, $pages[$i]);
 
 				//generate url for image selected
-				if ( $page['icon'] ) {
-					$page['icon'] = $this->path['img_url'] . DS . $page['icon'];
+				if ( $page['icon'] && file_exists( $this->path['img'] . DS . $page['icon'])) {
+					$page['icon'] =  $this->path['img_url'] . DS . $page['icon'];
 				}
 
 				//magic!

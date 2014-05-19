@@ -50,7 +50,7 @@ class TestprefixTest
 	 * Handler for the action defined in FramePress
 	 * main file (main.php)
 	 *
-	 * Cause this is an action, this function will render
+	 * Because this is an action, this function will render
 	 * its view only if requested
 	*/
 	public function actionA ()
@@ -89,10 +89,10 @@ class TestprefixTest
 	 * Handler for the shortcode defined in FramePress
 	 * main file (main.php)
 	 *
-	 * Cause this is an shortcode, this function must return
+	 * Because this is an shortcode, this function must return
 	 * a string as replacement of the shortcode tag
 	*/
-	public function shortA ()
+	public function shortA ($attr= null, $content = null, $tag=null)
 	{
 		global $test;
 

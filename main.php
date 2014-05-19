@@ -20,6 +20,7 @@
 	global $test;
 	$test = new $FramePress(__FILE__, array(
 		'prefix' => 'testprefix',
+		'debug' => true,
 	));
 
 
@@ -53,7 +54,7 @@
 				'capability' => 'administrator',
 				'controller' => 'test',
 				'function' => 'testEmail',
-				'icon' => 'logo16.png',
+				'icon' => 'dashicons-marker',
 			),
 		),
 	);
