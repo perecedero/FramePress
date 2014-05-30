@@ -20,6 +20,10 @@ It work as a VC Framework, It permit the use of headers, and it has a session em
 
 ## Change Log
 
+### Version 004
+Fixed examples on test controller
+Changed the way admin pages/menus are registered
+
 ### Version 003
 improved shortcodes
 improved error handler and reporting

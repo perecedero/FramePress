@@ -13,6 +13,10 @@ class TestprefixTest
 	{
 		global $test;
 
+		$ud = get_userdata(get_current_user_id());
+		$user_email = $ud->data->user_email;
+
+		$test->viewSet('user_email', $user_email);
 	}
 
 
@@ -39,8 +43,7 @@ class TestprefixTest
 		));
 
 		//set some view vars && send it
-		$mail->viewSet('username', $_POST['data']['username']);
-		$mail->viewSet('fullname', $_POST['data']['fullname']);
+		$mail->viewSet('body', $_POST['data']['body']);
 		$mail->send();
 
 		$test->redirect(array('function'=>'testEmail'));
@@ -102,7 +105,7 @@ class TestprefixTest
 
 
 		//now you can return the string
-		return '<a href="#jojo">go to jojo</a>';
+		//return '<a href="#jojo">go to jojo</a>';
 
 		//or you can draw a whole view and returit
 		//and rememeber that you can pass info to the view

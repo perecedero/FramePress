@@ -22,8 +22,8 @@ if(!defined('DS')){define('DS', DIRECTORY_SEPARATOR);}
 
 
 //define core class
-if (!class_exists('FramePress_003')) {
-class FramePress_003
+if (!class_exists('FramePress_004')) {
+class FramePress_004
 {
 	public $config = array(
 		'prefix' => null,
@@ -288,6 +288,34 @@ class FramePress_003
 	public function pages( $pages=array() )
 	{
 		$this->pages = $pages;
+
+		//add/calculate default/missing info
+		foreach ($this->pages as $type => $pages){
+			for($i=0; $i<count($pages); $i++){
+
+				$page_defaults = array('page.title'=> null, 'menu.title'=> null, 'capability'=> null, 'controller'=> null, 'function'=>'index', 'parent'=> null, 'icon'=> null, 'position'=> null);
+				$page = array_merge($page_defaults, $pages[$i]);
+
+				//generate url for image selected
+				if ( $page['icon'] && file_exists( $this->path['img'] . DS . $page['icon'])) {
+					$page['icon'] =  $this->path['img_url'] . DS . $page['icon'];
+				}
+
+				//magic!
+				$page['menu.slug'] = $this->config['prefix'] . '-' . $page['controller'] . '-' . $page['function'];
+				if ($page['parent']){
+					$menus = $this->pages['menu'];
+					for ($p=0; $p < count($menus); $p++){
+						if( $menus[$p]['menu.title'] == $page['parent'] ) {
+							$page['parent.slug'] = $this->config['prefix'] . '-' . $menus[$p]['controller']. '-' . $menus[$p]['function'];
+							break;
+						}
+					}
+				}
+				$this->pages[$type][$i] = $page;
+			}
+		}
+
 		add_action('admin_menu', array($this, 'addPagesReal'));
 	}
 
@@ -302,26 +330,7 @@ class FramePress_003
 		foreach ($this->pages as $type => $pages){
 			for($i=0; $i<count($pages); $i++){
 
-				$page_defaults = array('page.title'=> null, 'menu.title'=> null, 'capability'=> null, 'controller'=> null, 'function'=>'index', 'parent'=> null, 'icon'=> null, 'position'=> null);
-				$page = array_merge($page_defaults, $pages[$i]);
-
-				//generate url for image selected
-				if ( $page['icon'] && file_exists( $this->path['img'] . DS . $page['icon'])) {
-					$page['icon'] =  $this->path['img_url'] . DS . $page['icon'];
-				}
-
-				//magic!
-				$page['menu.slug'] = $this->config['prefix'] . '-' . $page['controller'] . '-' . $page['function'];
-				$this->pages[$type][$i]['menu.slug'] = $page['menu.slug'];
-				if ($page['parent']){
-					$menus = $this->pages['menu'];
-					for ($p=0; $p < count($menus); $p++){
-						if( $menus[$p]['menu.title'] == $page['parent'] ) {
-							$page['parent.slug'] = $this->config['prefix'] . '-' . $menus[$p]['controller']. '-' . $menus[$p]['function'];
-							break;
-						}
-					}
-				}
+				$page = $pages[$i];
 
 				switch($type) {
 					case 'menu':
@@ -1011,7 +1020,7 @@ class FramePress_003
 }//end class
 
 //Export framework className
-$GLOBALS["FramePress"] = 'FramePress_003';
-$FramePress = 'FramePress_003';
+$GLOBALS["FramePress"] = 'FramePress_004';
+$FramePress = 'FramePress_004';
 
 }//end if class exists
