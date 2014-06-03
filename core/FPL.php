@@ -22,8 +22,8 @@ if(!defined('DS')){define('DS', DIRECTORY_SEPARATOR);}
 
 
 //define core class
-if (!class_exists('FramePress_004')) {
-class FramePress_004
+if (!class_exists('FramePress_005')) {
+class FramePress_005
 {
 	public $config = array(
 		'prefix' => null,
@@ -65,10 +65,10 @@ class FramePress_004
 	public $errorlog = array();
 
 	/**
-	 * Constructor. It wil create all the objects necesaries for FramePress
+	 * Constructor.
 	 *
 	 * @param string $main_file Name of the main file
-	 * @param string $config user defined configuration
+	 * @param string $config user configuration
 	*/
 	public function __construct($main_file, $config = array() )
 	{
@@ -87,7 +87,6 @@ class FramePress_004
 		//set paths
 		$this->path = array (
 			'core' => $fpl_fullpath . DS . 'core',
-			'config' => $fpl_fullpath . DS . 'config',
 			'controllers' => $fpl_fullpath . DS . 'controllers',
 			'view' => $fpl_fullpath . DS . 'views',
 			'd_view' => $fpl_fullpath . DS . 'core' . DS . 'defaults' . DS . 'views',
@@ -207,6 +206,9 @@ class FramePress_004
 
 		//Capture output
 		add_action('init', array($this, 'capture_output'));
+
+		//user defined actions
+		do_action($this->config['prefix'] . '_framepress_creation' );
 	}
 
 	//------------------------------------------------------------------------------------------------------------------
@@ -238,11 +240,7 @@ class FramePress_004
 	*/
 	public function activation ()
 	{
-		require_once ($this->path['config'] . DS . 'activation.php');
-		$function_name = strtolower($this->config['prefix']) . '_' . 'on_activation';
-		if (function_exists($function_name)){
-			call_user_func($function_name);
-		}
+		do_action($this->config['prefix'] . '_activation' );
 	}
 
 	/**
@@ -256,11 +254,7 @@ class FramePress_004
 			delete_option($this->session['name']);
 		}
 
-		require_once ($this->path['config'] . DS . 'activation.php');
-		$function_name = strtolower($this->config['prefix']) . '_' . 'on_deactivation';
-		if (function_exists($function_name)){
-			call_user_func($function_name);
-		}
+		do_action($this->config['prefix'] . '_deactivation' );
 	}
 
 	//------------------------------------------------------------------------------------------------------------------
@@ -1020,7 +1014,7 @@ class FramePress_004
 }//end class
 
 //Export framework className
-$GLOBALS["FramePress"] = 'FramePress_004';
-$FramePress = 'FramePress_004';
+$GLOBALS["FramePress"] = 'FramePress_005';
+$FramePress = 'FramePress_005';
 
 }//end if class exists
