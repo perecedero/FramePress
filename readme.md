@@ -20,20 +20,20 @@ It work as a VC (view-controller) Framework: handle your short codes, metaboxes,
 
 ## Change Log
 
-### Version 005
+#### Version 005
 Changed activation/deactivation handlers
 
-### Version 004
+#### Version 004
 Fixed examples on test controller
 Changed the way admin pages/menus are registered
 
-### Version 003
+#### Version 003
 improved shortcodes
 improved error handler and reporting
 included debug mode
 Fixed minor bugs
 
-### Version 002
+#### Version 002
 added shortcodes compatibility!
 modified action is\_ajax to can add wp\_ajax\_nopriv\_
 Fixed some bugs on the core action
@@ -45,15 +45,13 @@ added more examples to the test controller
 file main.php
 
 ```PHP
+require_once( 'core/FPL.php' );
+global $FramePress;
 
-	require_once( 'core/FPL.php' );
-	global $FramePress;
-
-	global $test;
-	$test = new $FramePress(__FILE__, array(
-		'prefix' => 'testprefix',
-	));
-
+global $test;
+$test = new $FramePress(__FILE__, array(
+	'prefix' => 'testprefix',
+));
 ```
 
 You must give a __unique__ name to your instance variable.
@@ -65,7 +63,7 @@ will be used to give unique names to controllers classes and other features
 like i18n
 
 
-### Complete list of predefined options
+#### Complete list of predefined options
 
 >__prefix__:
 >_Used to give unique names to controllers classes and others_
@@ -108,18 +106,16 @@ check out actions section to see how to handle actions
 file main.php
 
 ```PHP
-
-	$test->mergePaths(array(
-		'superlibs' => $test->path['lib'] . DS . 'super';
-		'duperlibs' => $test->path['lib'] . DS . 'super' . DS . 'duper';
-	));
-
+$test->mergePaths(array(
+	'superlibs' => $test->path['lib'] . DS . 'super';
+	'duperlibs' => $test->path['lib'] . DS . 'super' . DS . 'duper';
+));
 ```
 
 The __mergePaths__ function give you the possibility of define new path for your
 plugin structure, and to modify predefined ones.
 
-### Complete list of predefined paths
+#### Complete list of predefined paths
 
 >__core__: path to core folder
 >
@@ -161,24 +157,22 @@ plugin structure, and to modify predefined ones.
 file main.php
 
 ```PHP
-
-	// action / filters
-	$my_actions = array (
-		array(
-			'tag' => 'init',
-			'controller' => 'super',
-			'function' => 'actionA',
-		),
-	);
-	$test->actions($my_actions);
-
+// action / filters
+$my_actions = array (
+	array(
+		'tag' => 'init',
+		'controller' => 'super',
+		'function' => 'actionA',
+	),
+);
+$test->actions($my_actions);
 ```
 
 In this way the  function actionA  on super controller will be called on init
 tag is a predefined wordpress action or a custom tag.
 See [Action Reference](http://http://codex.wordpress.org/Plugin_API/Action_Reference "") for more information about predefined tags
 
-### Complete list of options for an action
+#### Complete list of options for an action
 
 >__tag__:
 >__(required)__ _predefined wordpress action or a custom tag_
@@ -205,26 +199,24 @@ See [Action Reference](http://http://codex.wordpress.org/Plugin_API/Action_Refer
 file main.php
 
 ```PHP
-
-	$wp_pages = array (
-		'menu' => array (
-			array (
-				'page.title' => 'framepress, easier impossibru',
-				'menu.title' => 'Test menu',
-				'capability' => 'administrator',
-				'controller' => 'super',
-				'function' => 'index',
-				'icon' => 'logo16.png',
-			),
+$wp_pages = array (
+	'menu' => array (
+		array (
+			'page.title' => 'framepress, easier impossibru',
+			'menu.title' => 'Test menu',
+			'capability' => 'administrator',
+			'controller' => 'super',
+			'function' => 'index',
+			'icon' => 'logo16.png',
 		),
-	);
-	$test->pages($wp_pages);
-
+	),
+);
+$test->pages($wp_pages);
 ```
 
 As easy as that, you can add multiple admin pages.
 
-###The posibles admin page types are:
+#### The posibles admin page types are:
 
 >* menu
 >* submenu
@@ -245,32 +237,30 @@ For each type you can define multiples admin pages
 file main.php
 
 ```PHP
-
-	$my_pages = array (
-		'menu' => array (
-			array (
-				'page.title' => 'framepress, easier impossibru',
-				'menu.title' => 'Test menu',
-				'capability' => 'administrator',
-				'controller' => 'super',
-				'function' => 'index',
-				'icon' => 'logo16.png',
-			),
-			array (
-				'page.title' => 'framepress, easier impossibru PRO',
-				'menu.title' => 'Test menu PRO',
-				'capability' => 'administrator',
-				'controller' => 'super',
-				'function' => 'indexPRO',
-				'icon' => 'logo16.png',
-			),
+$my_pages = array (
+	'menu' => array (
+		array (
+			'page.title' => 'framepress, easier impossibru',
+			'menu.title' => 'Test menu',
+			'capability' => 'administrator',
+			'controller' => 'super',
+			'function' => 'index',
+			'icon' => 'logo16.png',
 		),
-	);
-	$test->pages($my_pages);
-
+		array (
+			'page.title' => 'framepress, easier impossibru PRO',
+			'menu.title' => 'Test menu PRO',
+			'capability' => 'administrator',
+			'controller' => 'super',
+			'function' => 'indexPRO',
+			'icon' => 'logo16.png',
+		),
+	),
+);
+$test->pages($my_pages);
 ```
 
-### Complete list of options for an admin page
+#### Complete list of options for an admin page
 
 >__page.title__:
 >__(required)__ _The title for the admin page_
@@ -302,23 +292,21 @@ file main.php
 file main.php
 
 ```PHP
-
-	//adding short codes
-	$my_shortcodes = array (
-		array(
-			'tag' => 'shortcode_name',
-			'controller' => 'main',
-			'function' => 'hendle shortcode',
-		),
-	);
-	$test->shortcodes($my_shortcodes);
-
+//adding short codes
+$my_shortcodes = array (
+	array(
+		'tag' => 'shortcode_name',
+		'controller' => 'main',
+		'function' => 'hendle_shortcode',
+	),
+);
+$test->shortcodes($my_shortcodes);
 ```
 
 Now you can handle shortcodes in your post or page.
 the short codes will be reaplaced with the string returned by your function.
 
-### Complete list of options for an action
+#### Complete list of options for an action
 
 >__tag__:
 >__(required)__ _name of the shortcode to use_
@@ -340,70 +328,64 @@ the short codes will be reaplaced with the string returned by your function.
 file main.php
 
 ```PHP
+//declare the actions handlers
 
-	//declare the actions handlers
-
-	$my_actions = array (
-		array(
-			'tag' => 'add_meta_boxes',
-			'controller' => 'metaboxes',
-			'function' => 'location',
-		),
-		array(
-			'tag' => 'save_post',
-			'controller' => 'metaboxes',
-			'function' => 'saveLocation',
-		),
-	);
-	$test->actions($my_actions);
-
+$my_actions = array (
+	array(
+		'tag' => 'add_meta_boxes',
+		'controller' => 'metaboxes',
+		'function' => 'location',
+	),
+	array(
+		'tag' => 'save_post',
+		'controller' => 'metaboxes',
+		'function' => 'saveLocation',
+	),
+);
+$test->actions($my_actions);
 ```
 
 file controllers/metaboxes.php
 
 ```PHP
-
-	class TestMetaboxes
+class TestMetaboxes
+{
+	public function location ()
 	{
-		public function location ()
-		{
-			// Tell to wordpress to add the metabox on posts
-			add_meta_box('location_selector_mbox', __( 'Location selector', 'test' ), array( $this, 'printLocation' ), 'post', 'normal', 'default');
-		}
-
-		public function printLocation ($post, $metabox)
-		{
-			global $test;
-
-			$previous_value = get_post_meta($post->ID, 'location', true);
-
-			// Set the value to the view
-			$test->viewSet('selected', $previous_value);
-
-			// Tell FramePress to draw the especific view
-			$test->drawView('metaboxes/locationSelector');
-		}
-
-		public function saveLocation($post_id, $post)
-		{
-			update_post_meta($post_id, 'location', $_POST['location']);
-			return $post;
-		}
-
+		// Tell to wordpress to add the metabox on posts
+		add_meta_box('location_selector_mbox', __( 'Location selector', 'test' ), array( $this, 'printLocation' ), 'post', 'normal', 'default');
 	}
 
+	public function printLocation ($post, $metabox)
+	{
+		global $test;
+
+		$previous_value = get_post_meta($post->ID, 'location', true);
+
+		// Set the value to the view
+		$test->viewSet('selected', $previous_value);
+
+		// Tell FramePress to draw the especific view
+		$test->drawView('metaboxes/locationSelector');
+	}
+
+	public function saveLocation($post_id, $post)
+	{
+		update_post_meta($post_id, 'location', $_POST['location']);
+		return $post;
+	}
+
+}
 ```
 
 file views/metaboxes/locationSelector.php
 
 ```HTML+PHP
+<!-- complex view -->
 
-	<!-- complex view -->
+<input name="location" value="<?php echo $selected ?>">
 
-	<input name="location" value="<?php echo $selected ?>">
-
-	<!--  complex view end -->
-
+<!--  complex view end -->
 ```
 
 ### AJAX
@@ -411,68 +393,49 @@ file views/metaboxes/locationSelector.php
 file main.php
 
 ```PHP
+//declare the actions handlers
 
-	//declare the actions handlers
-
-	$my_actions = array (
-		array(
-			'tag' => 'test_event_tick',
-			'controller' => 'events',
-			'function' => 'onTick',
-			is_ajax => public
-		),
-	);
-	$test->actions($my_actions);
-
+$my_actions = array (
+	array(
+		'tag' => 'test_event_tick',
+		'controller' => 'events',
+		'function' => 'onTick',
+		is_ajax => public
+	),
+);
+$test->actions($my_actions);
 ```
 
 file controllers/events.php
 
 ```PHP
-
-	class TestEvents
+class TestEvents
+{
+	public function onTick ()
 	{
-		public function onTick ()
-		{
-			global $test;
+		global $test;
 
-			/*do some magic*/
+		/*do some magic*/
 
-			//return response as json
+		//return response as json
 
-			return json_encode (array('status'=>'ok', 'msg' => 'tick saved'));
+		return json_encode (array('status'=>'ok', 'msg' => 'tick saved'));
 
-			//or return a view
-			// null: draw default view (views/events/onTick.php)
-			// false: do not echo the view, return it instead
+		//or return a view
+		// null: draw default view (views/events/onTick.php)
+		// false: do not echo the view, return it instead
 
-			return $test->drawView(null, false);
-		}
+		return $test->drawView(null, false);
 	}
-
+}
 ```
 
 in some view ...
 
 ```JavaScript
+jQuery.post(ajaxurl, {action:"test_event_tick", 'cookie': encodeURIComponent(document.cookie)}, function(data) {
 
-	<a href="#" id="button">Send Tick</a>
+	//do some magic with the response
 
-	<script type='text/javascript'>
-		jQuery(document).ready ( function () {
-
-			jQuery('#button').click( function() {
-
-				jQuery.post(ajaxurl, {action:"test_event_tick", 'cookie': encodeURIComponent(document.cookie)}, function(data) {
-
-					//do some magic with the response
-
-				});
-
-				return false;
-			});
-
-		});
-	</script>
-
+});
 ```
