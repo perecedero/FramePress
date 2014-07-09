@@ -22,8 +22,8 @@ if(!defined('DS')){define('DS', DIRECTORY_SEPARATOR);}
 
 
 //define core class
-if (!class_exists('FramePress_005')) {
-class FramePress_005
+if (!class_exists('FramePress_006')) {
+class FramePress_006
 {
 	public $config = array(
 		'prefix' => null,
@@ -298,13 +298,14 @@ class FramePress_005
 				//magic!
 				$page['menu.slug'] = $this->config['prefix'] . '-' . $page['controller'] . '-' . $page['function'];
 				if ($page['parent']){
-					$menus = $this->pages['menu'];
+					$menus = (isset($this->pages['menu']))?$this->pages['menu']:array();
 					for ($p=0; $p < count($menus); $p++){
 						if( $menus[$p]['menu.title'] == $page['parent'] ) {
 							$page['parent.slug'] = $this->config['prefix'] . '-' . $menus[$p]['controller']. '-' . $menus[$p]['function'];
 							break;
 						}
 					}
+					if(!isset($page['parent.slug'] )){ $page['parent.slug'] = $page['parent']; }
 				}
 				$this->pages[$type][$i] = $page;
 			}
@@ -580,6 +581,8 @@ class FramePress_005
 				$this->status['view.file'] = $file;
 			}elseif(is_file($this->path['view'] . DS . $fileDefExt)){
 				$this->status['view.file'] = $this->path['view'] . DS . $fileDefExt;
+			}elseif(is_file($this->path['view'] . DS . strtolower($this->status['controller.name']) . DS . $fileDefExt)){
+				$this->status['view.file'] = $this->path['view'] . DS . strtolower($this->status['controller.name']) . DS . $fileDefExt;
 			}elseif(is_file($this->path['d_view'] . DS . $fileDefExt)){
 				$this->status['view.file'] = $this->path['d_view'] . DS . $fileDefExt;
 			} else {
@@ -609,10 +612,9 @@ class FramePress_005
 			$content_for_layout = @ob_get_contents();
 		@ob_end_clean();
 
-
 		@ob_start();
 			//load layout's
-			require_once ($this->status['view.layout.file']);
+			require ($this->status['view.layout.file']);
 
 			//save all
 			$fpl_buffer = @ob_get_contents();
@@ -1014,7 +1016,7 @@ class FramePress_005
 }//end class
 
 //Export framework className
-$GLOBALS["FramePress"] = 'FramePress_005';
-$FramePress = 'FramePress_005';
+$GLOBALS["FramePress"] = 'FramePress_006';
+$FramePress = 'FramePress_006';
 
 }//end if class exists
