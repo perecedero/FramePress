@@ -9,7 +9,7 @@
 	*/
 
 	//init framework
-	require_once( 'core/FPL.php' );
+	require_once( 'core/main.php' );
 	global $FramePress;
 
 	/**

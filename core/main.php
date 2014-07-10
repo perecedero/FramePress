@@ -22,8 +22,8 @@ if(!defined('DS')){define('DS', DIRECTORY_SEPARATOR);}
 
 
 //define core class
-if (!class_exists('FramePress_007')) {
-class FramePress_007
+if (!class_exists('FramePress_010')) {
+class FramePress_010
 {
 	public $config = array(
 		'prefix' => null,
@@ -72,37 +72,51 @@ class FramePress_007
 	*/
 	public function __construct($main_file, $config = array() )
 	{
+		$fullpath = dirname($main_file);
+		$foldername = basename(dirname($main_file));
+
+		//set paths
+		$this->paths = array (
+			'plugin' => $fullpath,
+			'core' => $fullpath . DS . 'core',
+			'controllers' => $fullpath . DS . 'controllers',
+			//'view' => $fullpath . DS . 'views',
+			//'d_view' => $fullpath . DS . 'core' . DS . 'defaults' . DS . 'views',
+			//'layout' => $fullpath . DS . 'views' . DS . 'layouts',
+			'lib' => $fullpath . DS . 'lib',
+			'lang' => $fpl_foldername . DS . 'languages',
+			'tmp' => $fullpath . DS . 'tmp',
+			'resources' => $fullpath . DS . 'resources',
+			'img' => $fullpath . DS . 'resources' . DS . 'img',
+			'img_url' => get_bloginfo( 'wpurl' ) . '/wp-content/plugins/' . $fpl_foldername . '/resources/img',
+			'css' => $fullpath . DS . 'resources' . DS . 'css',
+			'css_url' => get_bloginfo( 'wpurl' ) . '/wp-content/plugins/' . $fpl_foldername . '/resources/css',
+			'js' => $fullpath . DS . 'resources' . DS . 'js',
+			'js_url' => get_bloginfo( 'wpurl' ). '/wp-content/plugins/' . $fpl_foldername . '/resources/js',
+		);
+
+
+		//~ $load_path = array(
+			//~ 'core' => $this->path['core'] . DS,
+			//~ 'controllers' => $this->path['controllers'] . DS,
+			//~ 'lib' => $this->path['lib'] . DS,
+		//~ )
+//~
+		//~ set_include_path(get_include_path().PATH_SEPARATOR.'path/to/my/directory/');
+		//~ spl_autoload_extensions('.fp.php,.php,.inc');
+		//~ spl_autoload_register();
+
 		register_shutdown_function (array($this, 'errorhandler'));
 
-		$fpl_fullpath = dirname($main_file);
-		$fpl_foldername = basename(dirname($main_file));
 
 		//set partial status
 		$this->status = array_merge($this->status, array(
-			'plugin.fullpath' => $fpl_fullpath,
+			'plugin.fullpath' => $fullpath,
 			'plugin.foldername' => $fpl_foldername,
 			'plugin.mainfile' => basename($main_file),
 		));
 
-		//set paths
-		$this->path = array (
-			'core' => $fpl_fullpath . DS . 'core',
-			'controllers' => $fpl_fullpath . DS . 'controllers',
-			'view' => $fpl_fullpath . DS . 'views',
-			'd_view' => $fpl_fullpath . DS . 'core' . DS . 'defaults' . DS . 'views',
-			'layout' => $fpl_fullpath . DS . 'views' . DS . 'layouts',
-			'lib' => $fpl_fullpath . DS . 'lib',
-			'd_lib' => $fpl_fullpath . DS . 'core' . DS . 'defaults' . DS . 'lib',
-			'lang' => $fpl_foldername . DS . 'languages',
-			'tmp' => $fpl_fullpath . DS . 'tmp',
-			'resources' => $fpl_fullpath . DS . 'resources',
-			'img' => $fpl_fullpath . DS . 'resources' . DS . 'img',
-			'img_url' => get_bloginfo( 'wpurl' ) . '/wp-content/plugins/' . $fpl_foldername . '/resources/img',
-			'css' => $fpl_fullpath . DS . 'resources' . DS . 'css',
-			'css_url' => get_bloginfo( 'wpurl' ) . '/wp-content/plugins/' . $fpl_foldername . '/resources/css',
-			'js' => $fpl_fullpath . DS . 'resources' . DS . 'js',
-			'js_url' => get_bloginfo( 'wpurl' ). '/wp-content/plugins/' . $fpl_foldername . '/resources/js',
-		);
+
 
 		//Merge configurations
 		$this->config = array_merge($this->config, $config);
@@ -257,6 +271,20 @@ class FramePress_007
 		do_action($this->config['prefix'] . '_deactivation' );
 	}
 
+	/**
+	 * Call deactivation function
+	 *
+	 * @return void
+	*/
+	public function uninstall ()
+	{
+		if($this->session['name']){
+			delete_option($this->session['name']);
+		}
+
+		do_action($this->config['prefix'] . '_uninstall' );
+	}
+
 	//------------------------------------------------------------------------------------------------------------------
 
 	/**
@@ -279,7 +307,7 @@ class FramePress_007
 	 * @param array $pages
 	 * @return void
 	*/
-	public function pages( $pages=array() )
+	public function adminPages( $pages=array() )
 	{
 		$this->pages = $pages;
 
@@ -311,7 +339,7 @@ class FramePress_007
 			}
 		}
 
-		add_action('admin_menu', array($this, 'addPagesReal'));
+		add_action('admin_menu', array($this, 'addAdminPagesReal'));
 	}
 
 	/**
@@ -320,7 +348,7 @@ class FramePress_007
 	 * @param array $pages
 	 * @return void
 	*/
-	public function addPagesReal ()
+	public function addAdminPagesReal ()
 	{
 		foreach ($this->pages as $type => $pages){
 			for($i=0; $i<count($pages); $i++){
@@ -539,236 +567,6 @@ class FramePress_007
 	}
 
 
-
-	//------------------------------------------------------------------------------------------------------------------
-
-	/**
-	 * Save a variable to pass it to the view.
-	 *
-	 * @param string $varName tag for the variable
-	 * @param mixed $value value of the variable passed to the view
-	 * @return void
-
-	*/
-	public function viewSet ($varName, $value, $context = 'FPL')
-	{
-		$this->status['view.vars'][$context][$varName] = $value;
-	}
-
-	/**
-	 * Set the name of the layout that will be used for draw the view
-	 *
-	 * @param string $layout_name name of the layout file
-	 * @return void
-	*/
-	public function viewSetLayout ($layout_name = null)
-	{
-		$this->status['view.layout.file'] = $this->path['layout'] . DS . $layout_name. '.php';
-	}
-
-	/**
-	 * Draw the view with the layout
-	 *
-	 * @return mixed: false on failure, string on $print false, void in $print true
-	*/
-	public function drawView ($file = null, $flushoutput = true, $context = 'FPL')
-	{
-		if($file){
-
-			$fileDefExt = rtrim($file, '.php') . '.php';
-
-			if(is_file($file)){
-				$this->status['view.file'] = $file;
-			}elseif(is_file($this->path['view'] . DS . $fileDefExt)){
-				$this->status['view.file'] = $this->path['view'] . DS . $fileDefExt;
-			}elseif(is_file($this->path['view'] . DS . strtolower($this->status['controller.name']) . DS . $fileDefExt)){
-				$this->status['view.file'] = $this->path['view'] . DS . strtolower($this->status['controller.name']) . DS . $fileDefExt;
-			}elseif(is_file($this->path['d_view'] . DS . $fileDefExt)){
-				$this->status['view.file'] = $this->path['d_view'] . DS . $fileDefExt;
-			} else {
-				$this->status['view.file'] = $fileDefExt;
-			}
-		}
-
-		if(!file_exists($this->status['view.file'])){
-			$fileRelativePath = substr( $this->status['view.file'], strpos($this->status['view.file'], $this->status['plugin.foldername']));
-			return $this->callErrorHandler('view',  'fpl_missing_view', $fileRelativePath, $flushoutput);
-		}
-
-		if(!file_exists($this->status['view.layout.file'])) {
-			$this->status['view.layout.file'] = $this->path['d_view'] . DS . 'fpl_default_layout.php';
-		}
-
-		@ob_start();
-			//import variables
-			if (isset($this->status['view.vars'][$context])) {
-				foreach ($this->status['view.vars'][$context] as $key=>$value) { $$key = $value; }
-			}
-
-			//load view
-			require ($this->status['view.file']);
-
-			//save all
-			$content_for_layout = @ob_get_contents();
-		@ob_end_clean();
-
-		@ob_start();
-			//load layout's
-			require ($this->status['view.layout.file']);
-
-			//save all
-			$fpl_buffer = @ob_get_contents();
-		@ob_end_clean();
-
-		if ($flushoutput){
-			echo $fpl_buffer;
-		}else{
-			return $fpl_buffer;
-		}
-	}
-
-	//------------------------------------------------------------------------------------------------------------------
-
-	public function sessionRead ($key, $global = null)
-	{
-		$id = $this->session['id']; if ($global) {$id = 'Global';}
-		$session =get_option($this->session['name'] );
-		$session[$id]['time'] = strtotime('now');
-		update_option ($this->session['name'], $session);
-		return ( isset($session[$id]['data'][$key]) )? $session[$id]['data'][$key] : null ;
-	}
-
-	public function sessionCheck ($key, $global = null)
-	{
-		$id = $this->session['id']; if ($global) {$id = 'Global';}
-		$session = get_option($this->session['name']);
-		$session[$id]['time'] = strtotime('now');
-		update_option ($this->session['name'],$session);
-		return  isset($session[$id]['data'][$key]);
-	}
-
-	public function sessionDelete ($key, $global = null)
-	{
-		$id = $this->session['id']; if ($global) {$id = 'Global';}
-		$session = get_option($this->session['name']);
-		$session[$id]['time'] = strtotime('now');
-		unset($session[$id]['data'][$key]);
-		$ses = $session;
-		update_option ($this->session['name'], $ses );
-	}
-
-	public function sessionDestroy ()
-	{
-		$id = $this->session['id'];
-		$session = get_option($this->session['name']);
-		$session[$id]['time'] = strtotime('now');
-		$session[$id]['data'] = array();
-		update_option ($this->session['name'], $session);
-		return true;
-	}
-
-	public function sessionWrite ($key, $value, $global = null)
-	{
-		$id = $this->session['id']; if ($global) {$id = 'Global';}
-		$session = get_option($this->session['name']);
-		$session[$id]['time'] = strtotime('now');
-		$session[$id]['data'][$key] = $value;
-		update_option ($this->session['name'], $session );
-	}
-
-	//------------------------------------------------------------------------------------------------------------------
-
-	/**
-	 * Generate wellformed css LINK tag.
-	 *
-	 * @param string $file Name of the file to load
-	 * @param array $args Options for the tag
-	 * @return String
-	*/
-	public function css ($file, $args=array())
-	{
-		$url = $this->path['css_url'] . '/' . $file;
-		return "<link href='{$url}' rel='stylesheet' type='text/css'>";
-	}
-
-	/**
-	 * Generate wellformed js SCRIPT tag.
-	 *
-	 * @param string $file Name of the file to load
-	 * @param array $args Options for the tag
-	 * @return String
-	*/
-	public function js ($file, $args=array())
-	{
-		$url = $this->path['js_url'] . '/' . $file;
-		return "<script type='text/javascript' language='javascript' src='{$url}'></script>";
-	}
-
-	/**
-	 * Generate wellformed A tag.
-	 *
-	 * @param string $title Link Anchor
-	 * @param mixed $url Href for the link
-	 * @param array $args Options for the tag
-	 * @return String
-	*/
-	public function link ($title, $url=array(), $args=array())
-	{
-		$opt ='';
-		foreach($args as $key =>$value) {
-			$opt .= ' '.$key.'=\''.$value.'\'';
-		}
-
-		$href = $this->router($url);
-
-		return "<a href='{$href}' {$opt} >{$title}</a>";
-	}
-
-	/**
-	 * Generate wellformed IMG tag.
-	 *
-	 * @param string $file Name of the file to load
-	 * @param array $args Options for the tag
-	 * @return String
-	*/
-	public function img ($file, $args=array())
-	{
-		$opt ='';
-		foreach($args as $key =>$value) {
-			$opt .= ' '.$key.'=\''.$value.'\'';
-		}
-
-		if (strpos($file, 'http') === false) {
-			$url = $this->path['img_url'] . '/' . $file;
-		} else {
-			$url = $file;
-		}
-		return "<img src='{$url}' {$opt}/>";
-	}
-
-	/**
-	 * Generate wellformed FORM tag.
-	 *
-	 * @param mixed $url - action property for the form
-	 * @param array $args Options for the tag
-	 * @return String
-	*/
-	public function form ($url, $args=array())
-	{
-		$defaults = array('method'=> 'post');
-		$options = array_merge($defaults, $args);
-
-		$opt ='';
-		foreach($options as $key =>$value) {
-			$opt .= ' '.$key.'=\''.$value.'\'';
-		}
-
-		$action = $this->router($url);
-
-		return "<form action='{$action}' {$opt}/>";
-	}
-
-	//------------------------------------------------------------------------------------------------------------------
 
 	/**
 	 * Perform a import of a file on lib folder
@@ -1053,8 +851,8 @@ class FramePress_007
 
 }//end class
 
-//Export framework className
-$GLOBALS["FramePress"] = 'FramePress_007';
-$FramePress = 'FramePress_007';
-
 }//end if class exists
+
+//Export framework className
+$GLOBALS["FramePress"] = 'FramePress_010';
+$FramePress = 'FramePress_010';
