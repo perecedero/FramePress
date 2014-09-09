@@ -22,8 +22,8 @@ if(!defined('DS')){define('DS', DIRECTORY_SEPARATOR);}
 
 
 //define core class
-if (!class_exists('FramePress_006')) {
-class FramePress_006
+if (!class_exists('FramePress_007')) {
+class FramePress_007
 {
 	public $config = array(
 		'prefix' => null,
@@ -791,6 +791,40 @@ class FramePress_006
 	}
 
 	/**
+	 * Perform a import of a file on lib folder
+	 *
+	 * @param string $name the place for redirect
+	 * @return void
+	*/
+	public function load ($name, $args = null)
+	{
+		$trimedName =  rtrim($name, '.php');
+		$globalClassName = ucfirst(basename($trimedName));
+
+		$file =  $this->path['lib'] . DS . $trimedName . '.php';
+		$default_file =  $this->path['d_lib'] . DS . $trimedName . '.php';
+
+
+		if(file_exists ($file)) {
+			require_once($file);
+		} elseif (file_exists ($default_file)){
+			require_once($default_file);
+		} else {
+			return false;
+		}
+
+
+		global $$globalClassName;
+		$className = $$globalClassName;
+
+		if(method_exists($className, 'fpGetInstance')){
+			return $className::fpGetInstance($this, $args);
+		}
+
+		return false;
+	}
+
+	/**
 	 * Perform a redirect using headers
 	 *
 	 * @param array $url The place for redirect
@@ -906,7 +940,11 @@ class FramePress_006
 				$this->viewSet('fileClassName', $this->status['controller.class'] );
 				$this->viewSet('fileFunctionName', $this->status['controller.method'] );
 
-				$this->drawView($view, $print_now);
+				$view =  $this->drawView($view, $print_now);
+
+				@restore_error_handler();
+				@ini_set('display_errors', false);
+				return $view;
 			}
 		}
 
@@ -1016,7 +1054,7 @@ class FramePress_006
 }//end class
 
 //Export framework className
-$GLOBALS["FramePress"] = 'FramePress_006';
-$FramePress = 'FramePress_006';
+$GLOBALS["FramePress"] = 'FramePress_007';
+$FramePress = 'FramePress_007';
 
 }//end if class exists
