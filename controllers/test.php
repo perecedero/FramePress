@@ -16,7 +16,8 @@ class TestprefixTest
 		$ud = get_userdata(get_current_user_id());
 		$user_email = $ud->data->user_email;
 
-		$test->viewSet('user_email', $user_email);
+		$test->View->layout('pepe');
+		$test->View->Set('user_email', $user_email);
 	}
 
 

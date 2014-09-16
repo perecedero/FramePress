@@ -9,16 +9,9 @@
 	*/
 
 	//init framework
-	require_once( 'core/main.php' );
-	global $FramePress;
-
-	/**
-	*	Create your global instance of framepress, and configure it
-	*	see "Creating and configuring your instance of framepress" documentation
-	* 	--------------------------------------------------------------------------------------------------------------------
-	*/
+	require_once( 'core/FramePress.php' );
 	global $test;
-	$test = new $FramePress(__FILE__, array(
+	$test  =  framePressGet(array(
 		'prefix' => 'testprefix',
 		'debug' => true,
 	));
@@ -54,8 +47,7 @@
 			),
 		),
 	);
-	$test->pages($my_pages);
-
+	$test->WordPress->adminpages($my_pages);
 
 
 	/**
@@ -71,7 +63,8 @@
 			'function' => 'actionA',
 		),
 	);
-	$test->actions($my_actions);
+	$test->actions($my_actions);	if (!function_exists('ppr')){
+
 */
 
 	/**
@@ -87,7 +80,13 @@
 		),
 
 	);
-	$test->shortcodes($my_shortcodes);
+	$test->WordPress->shortcodes($my_shortcodes);
 
 
-?>
+	if (!function_exists('pr')){
+		function pr ($data){
+			echo '<pre>';
+			print_r($data);
+			echo '</pre>';
+		}
+	}
