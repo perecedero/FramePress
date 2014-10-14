@@ -13,6 +13,8 @@ class FramePress_Session_001
 
 	public $session = null;
 
+	public $name = null;
+
 	public function __construct(&$fp)
 	{
 		if(!isset($_COOKIE)) {$_COOKIE = array();}
@@ -33,7 +35,8 @@ class FramePress_Session_001
 			$id = md5($value);
 		}
 
-		$this->config['name'] = 'fpl_session_' . strtolower($this->Core->config['prefix']) . '_' . $id;
+		$this->name = 'fpl_session_' . strtolower($this->Core->config['prefix']);
+		$this->config['name'] = $this->name . '_' . $id;
 
 		//create a session option if not exist
 		if ( !$session = get_option($this->config['name']) ) {
@@ -55,7 +58,6 @@ class FramePress_Session_001
 
 		add_action('shutdown', array($this, 'saveSession'));
 	}
-
 
 	public function read ($key)
 	{
@@ -88,13 +90,16 @@ class FramePress_Session_001
 		return $this->session['data'][$key] = $value;
 	}
 
-
 	public function saveSession()
 	{
 		update_option($this->config['name'], $this->session);
 	}
 
-
+	public function deleteAll()
+	{
+		global $wpdb;
+		$wpdb->query( "DELETE FROM {$wpdb->options} WHERE option_name LIKE '{$this->name}%'" );
+	}
 
 
 }//end class

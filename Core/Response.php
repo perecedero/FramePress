@@ -22,7 +22,7 @@ class FramePress_Response_001
 		$type = $this->Core->status['request.type'];
 
 		if ( in_array($type, array('adminpage', 'metabox')) && is_null($this->body)){
-			$this->Core->View->render();
+			$this->Core->View->render(null, array('print' => true));
 			@ob_end_flush();
 		}
 
@@ -37,7 +37,7 @@ class FramePress_Response_001
 			}
 
 			if(is_null($this->body)) {
-				$this->body = $this->Core->View->render(null, array('print' =>false));
+				$this->body = $this->Core->View->render();
 			}
 
 			return do_shortcode($this->body);
@@ -59,7 +59,7 @@ class FramePress_Response_001
 		//$this->Core->View->set('request_type', $type, $viewContext);
 
 		if ( in_array($type, array('adminpage', 'metabox')) ){
-			$this->Core->View->render($error, array('context' =>$viewContext));
+			$this->Core->View->render($error, array('print' => true, 'context' =>$viewContext));
 			@ob_end_flush();
 		}
 
@@ -73,7 +73,7 @@ class FramePress_Response_001
 				}
 			}
 
-			$this->Core->View->render($error, array( 'context' =>$viewContext));
+			$this->Core->View->render($error, array('print' => true, 'context' =>$viewContext));
 		}
 
 		//filters can return things

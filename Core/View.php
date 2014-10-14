@@ -16,7 +16,6 @@ class FramePress_View_001
 		$this->Core = $fp;
 	}
 
-
 	/**
 	 * Save a variable to pass it to the view.
 	 *
@@ -50,7 +49,7 @@ class FramePress_View_001
 	*/
 	public function render ($file = null, $args = array())
 	{
-		$fpr_defaults = array('print' => true, 'context'=>$this->context);
+		$fpr_defaults = array('print' => false, 'context'=>$this->context);
 		$fpr_args = array_merge($fpr_defaults, $args);
 
 		$fpr_info = $this->aaa($file, $fpr_args);
@@ -149,7 +148,11 @@ class FramePress_View_001
 		$corepath =$this->Core->paths['core.views.layouts'];
 
 		if(!$layout){
-			$layout = $this->Core->paths['core.views.layouts'] . DS . 'default.php';
+			if(isset($this->Core->status['controller.object']->layout)){
+				$layout = $path . DS . $this->Core->status['controller.object']->layout . '.php';
+			} else {
+				$layout = $this->Core->paths['core.views.layouts'] . DS . 'default.php';
+			}
 		} else if( !file_exists($layout)) {
 			$core_layout =str_replace( $path, $corepath , $layout);
 			if( file_exists($core_layout) ){

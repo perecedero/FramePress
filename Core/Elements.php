@@ -58,9 +58,8 @@ class FramePress_Elements_001
 	}
 
 }//end class
+}//end if class exists
 
 //Export framework className
 $GLOBALS["FramePressElements"] = 'FramePress_Elements_001';
 $FramePressElements = 'FramePress_Elements_001';
-
-}//end if class exists

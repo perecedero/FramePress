@@ -82,8 +82,8 @@ class FramePress_010
 		//Merge configurations
 		$this->config = array_merge($this->config, $config);
 
-		@set_error_handler(array($this->Error, 'capture'));
 		if($this->config['debug']) {
+			@set_error_handler(array($this->Error, 'capture'));
 			@ini_set('display_errors', false);
 			@register_shutdown_function (array($this->Error, 'capture'));
 		}
@@ -91,6 +91,7 @@ class FramePress_010
 		//Register activation and deactivation functions
 		register_activation_hook($this->status['plugin.foldername'] . DS . $this->status['plugin.mainfile'], array($this,'_activation'));
 		register_deactivation_hook($this->status['plugin.foldername'] . DS . $this->status['plugin.mainfile'], array($this, '_deactivation'));
+		register_uninstall_hook($this->status['plugin.foldername'] . DS . $this->status['plugin.mainfile'], array($this, '_uninstall'));
 
 		add_action('init', array($this, '_Init'));
 	}
@@ -109,9 +110,6 @@ class FramePress_010
 	*/
 	public function _init ()
 	{
-		//Init Error management
-		//$this->Error->init();
-
 		//Load lenguaje dictionary
 		if ($this->config['use.i18n']) {
 			$domain = (!is_bool($this->config['use.i18n']))? $this->config['use.i18n'] : $this->config['prefix'];
@@ -119,12 +117,7 @@ class FramePress_010
 		}
 
 		//Start the output capture
-		ob_start();
-		//~ if (version_compare(PHP_VERSION, '5.4.0', '>=')) {
-			//~ @ob_start(null, 0, PHP_OUTPUT_HANDLER_STDFLAGS ^ PHP_OUTPUT_HANDLER_REMOVABLE);
-		//~ } else {
-			//~ @ob_start(null, 0, false);
-		//~ }
+		@ob_start();
 	}
 
 	/**
@@ -144,11 +137,19 @@ class FramePress_010
 	*/
 	public function _deactivation ()
 	{
-		if($this->session['name']){
-			delete_option($this->session['name']);
-		}
-
+		$this->Session->deleteAll();
 		do_action($this->config['prefix'] . '_deactivation' );
+	}
+
+	/**
+	 * Call deactivation function
+	 *
+	 * @return void
+	*/
+	public function _uninstall ()
+	{
+		$this->Session->deleteAll();
+		do_action($this->config['prefix'] . '_uninstall' );
 	}
 
 	/**
