@@ -29,7 +29,6 @@ class FramePress_010
 	public $config = array(
 		'prefix' => null,
 		'use.i18n' => true,
-		'performance.log' => false,
 		'debug' => false,
 	);
 
@@ -55,22 +54,22 @@ class FramePress_010
 		//set partial paths
 		$this->paths = array (
 			'plugin' => $fullpath,
-			'core' => $fullpath . DS . 'core',
-			'core.views' => $fullpath . DS . 'core' . DS . 'views',
-			'core.views.layouts' => $fullpath . DS . 'core' . DS . 'views' . DS . 'layouts',
-			'controller' => $fullpath . DS . 'controllers',
-			'lib' => $fullpath . DS . 'lib',
-			'views' => $fullpath . DS . 'views',
-			'layouts' => $fullpath . DS . 'views' . DS . 'layouts',
-			'elements' => $fullpath . DS . 'views' . DS . 'elements',
-			'lang' => $foldername . DS . 'languages',
-			'resource' => $fullpath . DS . 'resources',
-			'img' => $fullpath . DS . 'resources' . DS . 'img',
-			'img.url' => get_bloginfo( 'wpurl' ) . '/wp-content/plugins/' . $foldername . '/resources/img',
-			'css' => $fullpath . DS . 'resources' . DS . 'css',
-			'css.url' => get_bloginfo( 'wpurl' ) . '/wp-content/plugins/' . $foldername . '/resources/css',
-			'js' => $fullpath . DS . 'resources' . DS . 'js',
-			'js.url' => get_bloginfo( 'wpurl' ). '/wp-content/plugins/' . $foldername . '/resources/js',
+			'core' => $fullpath . DS . 'Core',
+			'core.views' => $fullpath . DS . 'Core' . DS . 'Views',
+			'core.views.layouts' => $fullpath . DS . 'Core' . DS . 'Views' . DS . 'Layouts',
+			'controller' => $fullpath . DS . 'Controllers',
+			'lib' => $fullpath . DS . 'Lib',
+			'views' => $fullpath . DS . 'Views',
+			'layouts' => $fullpath . DS . 'Views' . DS . 'Layouts',
+			'elements' => $fullpath . DS . 'Views' . DS . 'Elements',
+			'lang' => $foldername . DS . 'Languages',
+			'resource' => $fullpath . DS . 'Resources',
+			'img' => $fullpath . DS . 'Resources' . DS . 'img',
+			'img.url' => get_bloginfo( 'wpurl' ) . '/wp-content/plugins/' . $foldername . '/Resources/img',
+			'css' => $fullpath . DS . 'Resources' . DS . 'css',
+			'css.url' => get_bloginfo( 'wpurl' ) . '/wp-content/plugins/' . $foldername . '/Resources/css',
+			'js' => $fullpath . DS . 'Resources' . DS . 'js',
+			'js.url' => get_bloginfo( 'wpurl' ). '/wp-content/plugins/' . $foldername . '/Resources/js',
 		);
 
 		//set partial status
@@ -83,24 +82,17 @@ class FramePress_010
 		//Merge configurations
 		$this->config = array_merge($this->config, $config);
 
-		//error handling
-		@ini_set('display_errors', false);
 		@set_error_handler(array($this->Error, 'capture'));
-		@register_shutdown_function (array($this->Error, 'capture'));
-
-
-		//Load languages
-		if ($this->config['use.i18n']) {
-			add_action('init', array($this, '_loadLanguages'));
+		if($this->config['debug']) {
+			@ini_set('display_errors', false);
+			@register_shutdown_function (array($this->Error, 'capture'));
 		}
 
 		//Register activation and deactivation functions
 		register_activation_hook($this->status['plugin.foldername'] . DS . $this->status['plugin.mainfile'], array($this,'_activation'));
 		register_deactivation_hook($this->status['plugin.foldername'] . DS . $this->status['plugin.mainfile'], array($this, '_deactivation'));
 
-		//Start capturing output
-		add_action('init', array($this, '_captureOutput'));
-
+		add_action('init', array($this, '_Init'));
 	}
 
     public function __get($name)
@@ -111,24 +103,28 @@ class FramePress_010
 	//------------------------------------------------------------------------------------------------------------------
 
 	/**
-	 * Start the output capture to can use headers on the plugin
+	 * Initialize the framework
 	 *
 	 * @return void
 	*/
-	public function _captureOutput ()
+	public function _init ()
 	{
-		@ob_start();
-	}
+		//Init Error management
+		//$this->Error->init();
 
-	/**
-	 * Load lenguaje dictionary
-	 *
-	 * @return void
-	*/
-	public function _loadLanguages ()
-	{
-		$domain = (!is_bool($this->config['use.i18n']))? $this->config['use.i18n'] : $this->config['prefix'];
-		load_plugin_textdomain( $domain, false, $this->paths['lang'] );
+		//Load lenguaje dictionary
+		if ($this->config['use.i18n']) {
+			$domain = (!is_bool($this->config['use.i18n']))? $this->config['use.i18n'] : $this->config['prefix'];
+			load_plugin_textdomain( $domain, false, $this->paths['lang'] );
+		}
+
+		//Start the output capture
+		ob_start();
+		//~ if (version_compare(PHP_VERSION, '5.4.0', '>=')) {
+			//~ @ob_start(null, 0, PHP_OUTPUT_HANDLER_STDFLAGS ^ PHP_OUTPUT_HANDLER_REMOVABLE);
+		//~ } else {
+			//~ @ob_start(null, 0, false);
+		//~ }
 	}
 
 	/**
@@ -156,7 +152,7 @@ class FramePress_010
 	}
 
 	/**
-	 * Merge default path with user defined one
+	 * Merge default path with user defined ones
 	 *
 	 * @param array $custom_path user defined path to use with the FramePress
 	 * @return void
@@ -181,21 +177,26 @@ class FramePress_010
 	{
 		$info = $this->fileInfo($type, $name);
 
-		if(!isset($this->modules[$info['type']][$info['name']])){
+		$this->status['loading'] = $info;
+
+		if(!isset($this->modules[$info['type_base']][$info['name']])){
 
 			//check && require file
-			if($this->fileCheck($info['file'])){
+			if($this->fileCheck($info)){
 				require_once($info['file']);
 			} else {
 				return false;
 			}
 
 			//get class name, instance  and register object
-			$className = $this->fileClassName($info['type'], $info['name']);
-			$this->modules[$info['type']][$info['name']] = new $className($this, $args);
+			$className = $this->fileClassName($info['type_base'], $info['name']);
+
+			$this->modules[$info['type_base']][$info['name']] = new $className($this, $args);
 		}
 
-		return $this->modules[$info['type']][$info['name']];
+		unset($this->status['loading']);
+
+		return $this->modules[$info['type_base']][$info['name']];
 	}
 
 	private function fileInfo($type, $name)
@@ -204,7 +205,7 @@ class FramePress_010
 			'type' => $type,
 			'type_base' => $type,
 			'type_path' => '',
-			'name' => rtrim($name, '.php'),
+			'name' => preg_replace('/.php$/s', '', $name),
 		);
 
 		if( ($subtype = strpos($type, '/')) !== false  ){
@@ -217,13 +218,13 @@ class FramePress_010
 		return $info;
 	}
 
-	private function fileCheck($file)
+	private function fileCheck($info)
 	{
-		if(!file_exists($file)) {
-			trigger_error('Missing File | FramePress' );
+		if(!file_exists($info['file'])) {
+			trigger_error('Missing File | FramePress', E_USER_WARNING );
 			return false;
-		} elseif(!is_readable($file)) {
-			trigger_error('Unreadable File | FramePress' );
+		} elseif(!is_readable($info['file'])) {
+			trigger_error('Unreadable File | FramePress', E_USER_WARNING );
 			return false;
 		} else {
 			return true;
@@ -282,23 +283,7 @@ class FramePress_010
 		@ob_end_clean();
 
 		$url = $this->router($url);
-
-		if($this->config['performance.log']){
-			$log = $this->sessionRead('performance.log');
-			$log[]=array(
-				'request' => 'redirect'. ': ' . $url,
-				'time' => 'x',
-				'memory' => 'x',
-			);
-			$this->sessionWrite('performance.log', $log);
-		}
-
-		$href = html_entity_decode($url);
-
-		header('HTTP/1.1 302 Found', true);
-		header('Status: 302 Found', true);
-		header('Location: ' . $href);
-		exit;
+		wp_redirect($url); exit;
 	}
 
 	/**
@@ -310,9 +295,7 @@ class FramePress_010
 	public function router ($url=array())
 	{
 		//string pased, nothing to do
-		if (!is_array($url)){
-			return $url;
-		}
+		if (!is_array($url)){ return $url; }
 
 		//complete $url
 		$defaults = array('menu_type' => null, 'controller' => null, 'function'=> null, 'params'=> '');
@@ -373,15 +356,30 @@ if(!function_exists('framePressGet')){
 	function framePressGet($configuration = array())
 	{
 		global $FramePress;
-		return new $FramePress(dirname(dirname(__FILE__)) . DS . 'main.php', $configuration);
+
+		if(isset($configuration['here'])){
+			$file = $configuration['here'];
+		}else{
+			$file = dirname(dirname(__FILE__)) . DS . 'main.php';
+		}
+
+		return new $FramePress($file, $configuration);
 	}
 }
 
-	//TESTINGGGG
-
-	//~ function get_bloginfo( $pepe=null ) { return 'null';}
-	//~ $test  =  framePressGet(array(
-		//~ 'prefix' => 'testprefix',
-		//~ 'debug' => true,
-	//~ ));
-	//~ print_r($test->load('Core/Components/Other', 'Elements'));
+if (!function_exists('pr')) {
+/**
+ * print_r() convenience function
+ *
+ * In terminals this will act the same as using print_r() directly, when not run on cli
+ * print_r() will wrap <PRE> tags around the output of given array.
+ *
+ * @param array $var Variable to print out
+ * @return void
+ * @link http://book.cakephp.org/2.0/en/core-libraries/global-constants-and-functions.html#pr
+ */
+	function pr($var) {
+		$template = php_sapi_name() !== 'cli' ? '<pre>%s</pre>' : "\n%s\n";
+		printf($template, print_r($var, true));
+	}
+}

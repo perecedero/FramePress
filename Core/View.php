@@ -96,10 +96,10 @@ class FramePress_View_001
 
 	public function aaa($file= null, $args)
 	{
-		$viewFolder =  strtolower($this->Core->status['controller.name']);
-		$viewName =  $this->Core->status['controller.method'];
-		$path = $this->Core->paths['views'];
-		$corepath = $this->Core->paths['core.views'];
+		$viewFolder =  @$this->Core->status['controller.name'];
+		$viewName =  @$this->Core->status['controller.method'];
+		$path = @$this->Core->paths['views'];
+		$corepath = @$this->Core->paths['core.views'];
 
 		//Find The view
 		if($file){

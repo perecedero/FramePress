@@ -11,6 +11,8 @@ class FramePress_WordPress_001
 
 	public $shortcodes = array();
 
+	public $metaboxes = array();
+
 	public $Core = null;
 
 	public function __construct(&$fp)
@@ -23,6 +25,7 @@ class FramePress_WordPress_001
 	 *
 	 * @param array $pages
 	 * @return void
+	 * @link http://codex.wordpress.org/Administration_Menus
 	*/
 	public function adminPages( $pages=array() )
 	{
@@ -42,14 +45,14 @@ class FramePress_WordPress_001
 				}
 
 				//generate slug for this menu
-				$page['menu.slug'] = $this->Core->config['prefix'] . '-' . $page['menu.title'];
+				$page['menu.slug'] = sanitize_title($this->Core->config['prefix'] . ' ' . $page['menu.title']);
 
 				//find parent menu
 				if ($page['parent']){
 					$menus = (isset($this->pages['menu']))?$this->pages['menu']:array();
 					for ($p=0; $p < count($menus); $p++){
 						if( $menus[$p]['menu.title'] == $page['parent'] ) {
-							$page['parent.slug'] = $this->Core->config['prefix'] . '-' . $menus[$p]['page.title'];
+							$page['parent.slug'] = sanitize_title($this->Core->config['prefix'] . ' ' . $menus[$p]['page.title']);
 							break;
 						}
 					}
@@ -67,6 +70,7 @@ class FramePress_WordPress_001
 	 *
 	 * @param array $pages
 	 * @return void
+	 * @link http://codex.wordpress.org/Administration_Menus
 	*/
 	public function addAdminPagesReal ()
 	{
@@ -74,10 +78,7 @@ class FramePress_WordPress_001
 			for($i=0; $i<count($pages); $i++){
 
 				$page = $pages[$i];
-
-				// the name will give dispacher the info to know the responsable
-				// of handle the request: type | controller | function
-				$callback =  array($this->Core->Dispatcher, 'adminpage' . '__AYNIL__' . $page['controller'] . '__AYNIL__' . $page['function']);
+				$callback =  array($this->Core->Dispatcher, 'adminpage' . '__AYNIL__' . $page['controller'] . '__AYNIL__' . $page['function'] . '__AYNIL__' . $page['menu.slug']);
 
 				switch($type) {
 					case 'menu':
@@ -132,6 +133,7 @@ class FramePress_WordPress_001
 	 *
 	 * @param array $actions
 	 * @return void
+	 * @link http://codex.wordpress.org/Function_Reference/add_shortcode
 	*/
 	public function shortcodes( $shortcodes=array() )
 	{
@@ -145,7 +147,7 @@ class FramePress_WordPress_001
 
 			// the name will give dispacher the info to know the responsable
 			// of handle the request: type | controller | function
-			$callback =  array($this->Core->Dispatcher, 'shortcode' . '__AYNIL__' . $sc['controller'] . '__AYNIL__' . $sc['function']);
+			$callback =  array($this->Core->Dispatcher, 'shortcode' . '__AYNIL__' . $sc['controller'] . '__AYNIL__' . $sc['function'] . '__AYNIL__' . $sc['tag']);
 
 			add_shortcode($sc['tag'] , $callback);
 		}
@@ -156,6 +158,8 @@ class FramePress_WordPress_001
 	 *
 	 * @param array $hooks
 	 * @return void
+	 * @link http://codex.wordpress.org/Function_Reference/add_action
+	 * @link http://codex.wordpress.org/Function_Reference/add_filter
 	*/
 	public function hooks( $hooks=array() )
 	{
@@ -171,27 +175,61 @@ class FramePress_WordPress_001
 
 			// the name will give dispacher the info to know the responsable
 			// of handle the request: type | controller | function
-			$callback =  array($this->Core->Dispatcher, 'hook' . '__AYNIL__' . $sc['controller'] . '__AYNIL__' . $sc['function']);
+			$callback =  array($this->Core->Dispatcher, 'hook' . '__AYNIL__' . $hook['controller'] . '__AYNIL__' . $hook['function'] . '__AYNIL__' . $hook['tag']);
 
-			if (!$action['is_ajax']) {
-				add_action($tag, $callback, $action['priority'], $action['accepted_args']);
+			if (!$hook['is_ajax']) {
+				add_action($tag, $callback, $hook['priority'], $hook['accepted_args']);
 			} else {
 
-				if( in_array($action['is_ajax'], array('both', 'private')) ){
-					add_action( 'wp_ajax_' . $tag, $callback, $action['priority'], $action['accepted_args']);
+				if( in_array($hook['is_ajax'], array(true, 'both', 'private')) ){
+					add_action( 'wp_ajax_' . $tag, $callback, $hook['priority'], $hook['accepted_args']);
 				}
 
-				if( in_array($action['is_ajax'], array('both', 'public')) ){
-					add_action( 'wp_ajax_nopriv_' . $tag, $callback, $action['priority'], $action['accepted_args']);
+				if( in_array($hook['is_ajax'], array(true, 'both', 'public')) ){
+					add_action( 'wp_ajax_nopriv_' . $tag, $callback, $hook['priority'], $hook['accepted_args']);
 				}
 			}
 		}
 		return true;
 	}
 
-	//TODO
-	//http://codex.wordpress.org/Function_Reference/add_meta_box
-	private function metaboxes ($mboxes = array()) {}
+
+	/**
+	 * Register metaboxes
+	 *
+	 * @param array $metaboxes
+	 * @return void
+	 * @link http://codex.wordpress.org/Function_Reference/add_meta_box
+	*/
+	public function metaboxes ($metaboxes = array())
+	{
+		$metab_defaults = array('id'=> null, 'title'=> null, 'post_type'=> null, 'context'=> 'advanced', 'priority'=>null, 'callback_args' => null, 'controller'=> null, 'function'=> null);
+
+		foreach ($metaboxes as $mb){
+			//populate missing/default info
+			$mb = array_merge($metab_defaults, $mb);
+			$this->metaboxes[] = $mb;
+		}
+
+		add_action('add_meta_boxes', array($this, 'addMetaboxesReal'));
+	}
+
+	/**
+	 * Add metaboxes
+	 *
+	 * @param string $posttype: posttype begin edited
+	 * @return void
+	 * @link http://codex.wordpress.org/Function_Reference/add_meta_box
+	*/
+	public function addMetaboxesReal ($postType)
+	{
+		foreach ($this->metaboxes as $mb){
+			$callback =  array($this->Core->Dispatcher, 'metabox' . '__AYNIL__' . $mb['controller'] . '__AYNIL__' . $mb['function'] . '__AYNIL__' . $mb['id']);
+			if(in_array($postType, (array)$mb['post_type'])){
+				add_meta_box( $mb['id'], $mb['title'], $callback, $postType, $mb['context'], $mb['priority'], $mb['callback_args'] );
+			}
+		}
+	}
 
 }//end class
 }//end if class exist

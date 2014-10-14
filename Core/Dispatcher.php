@@ -19,10 +19,6 @@ class FramePress_Dispatcher_001
 			return false;
 		}
 
-		if($this->Core->config['performance.log']){
-			$this->Core->Log->performance('start');
-		}
-
 		//before_filter
 		if(method_exists($this->Core->status['controller.object'], 'beforeFilter')) {
 			call_user_func(array($this->Core->status['controller.object'], 'beforeFilter'));
@@ -37,10 +33,6 @@ class FramePress_Dispatcher_001
 		//after_filter
 		if(method_exists($this->Core->status['controller.object'], 'afterFilter')) {
 			call_user_func(array($this->Core->status['controller.object'], 'afterFilter'));
-		}
-
-		if($this->Core->config['performance.log']){
-			$this->Core->Log->performance('stop');
 		}
 
 		return $this->Core->Response->parse();

@@ -5,5 +5,6 @@
 	.wrap pre b {color: #90CAEE; font-weight: bold; font-size:20px;}
 </style>
 
-
+<div class="wrap">
 <?php echo $content_for_layout;?>
+</div>
