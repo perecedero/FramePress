@@ -43,6 +43,7 @@ file main.php
 	global $test;
 	$test  =  framePressGet(array(
 		'prefix' => 'pfx',
+		'here' => __FILE__,
 		'debug' => true,
 	));
 ```
@@ -51,7 +52,7 @@ You must give a __unique__ name to your instance variable.
 We use __$test__ for a obvious reason.
 
 In this step you can setup predefined options and add custom ones.
-The most important and the only required, is the __prefix__ value. this value
+The most important is the __prefix__ value. this value
 will be used to give unique names to controllers classes and other features
 like i18n
 

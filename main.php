@@ -8,35 +8,44 @@
 	global $test;
 	$test  =  framePressGet(array(
 		'prefix' => 'testprefix',
+		'here' => __FILE__,
 		'debug' => true,
 	));
 
 
 	$test->WordPress->shortcodes(array(
 		array(
-			'tag' => 'test_error',
+			'tag' => 'my_short_code',
 			'controller' => 'Test',
-			'function' => 'errorShortcode',
+			'function' => 'shortcode',
 		)
 	));
 
 	$test->WordPress->hooks(array(
 		array(
-			'tag' => 'actionError',
+			'tag' => 'init',
 			'controller' => 'Test',
-			'function' => 'errorAjax',
-			'is_ajax'=> true,
+			'function' => 'action',
 		)
 	));
 
 	$test->WordPress->adminPages(array(
 		'settings' => array (
 			array (
-				'page.title' => 'Refresh fetures configurations',
-				'menu.title' => 'Refresh',
+				'page.title' => 'My first menu Page',
+				'menu.title' => 'FramePress Test',
 				'capability' => 'administrator',
 				'controller' => 'Test',
-				'function' => 'errorAdminPage',
+				'function' => 'adminPage',
+			),
+		),
+		'menu' => array (
+			array (
+				'page.title' => 'My own menu Page',
+				'menu.title' => 'FramePress Menu',
+				'capability' => 'administrator',
+				'controller' => 'Test',
+				'function' => 'ownAdminPage',
 			),
 		),
 	));
