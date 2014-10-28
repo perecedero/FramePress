@@ -171,22 +171,25 @@ class FramePress_WordPress_001
 			//populate missing/default info
 			$hook = array_merge($hook_defaults, $hook);
 
-			$tag = $hook['tag'];
+			if(!is_array($hook['tag'])){ $hook['tag'] = (array)$hook['tag']; }
 
-			// the name will give dispacher the info to know the responsable
-			// of handle the request: type | controller | function
-			$callback =  array($this->Core->Dispatcher, 'hook' . '__AYNIL__' . $hook['controller'] . '__AYNIL__' . $hook['function'] . '__AYNIL__' . $hook['tag']);
+			foreach($hook['tag'] as $t){
 
-			if (!$hook['is_ajax']) {
-				add_action($tag, $callback, $hook['priority'], $hook['accepted_args']);
-			} else {
+				// the name will give dispacher the info to know the responsable
+				// of handle the request: type | controller | function
+				$callback =  array($this->Core->Dispatcher, 'hook' . '__AYNIL__' . $hook['controller'] . '__AYNIL__' . $hook['function'] . '__AYNIL__' . $t);
 
-				if( in_array($hook['is_ajax'], array(true, 'both', 'private')) ){
-					add_action( 'wp_ajax_' . $tag, $callback, $hook['priority'], $hook['accepted_args']);
-				}
+				if (!$hook['is_ajax']) {
+					add_action($t, $callback, $hook['priority'], $hook['accepted_args']);
+				} else {
 
-				if( in_array($hook['is_ajax'], array(true, 'both', 'public')) ){
-					add_action( 'wp_ajax_nopriv_' . $tag, $callback, $hook['priority'], $hook['accepted_args']);
+					if( in_array($hook['is_ajax'], array(true, 'both', 'private')) ){
+						add_action( 'wp_ajax_' . $t, $callback, $hook['priority'], $hook['accepted_args']);
+					}
+
+					if( in_array($hook['is_ajax'], array(true, 'both', 'public')) ){
+						add_action( 'wp_ajax_nopriv_' . $t, $callback, $hook['priority'], $hook['accepted_args']);
+					}
 				}
 			}
 		}
