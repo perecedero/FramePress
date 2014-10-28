@@ -25,6 +25,7 @@
 				<h1>Something seems to not be working properly</h1>
 				<img width="40%" src="data:image/png;base64, <?php echo base64_encode(file_get_contents($this->Core->paths['core']. DS . 'Assets/500.png'));?>">
 		</div>
+
 		<div id="hook-errors">
 			<div class="error-list">
 			<?php foreach($errors as $e){?>
@@ -32,7 +33,7 @@
 					<?php $msg = explode(' | ', $e['message']); ?>
 					<?php $id = md5(serialize($e)); ?>
 					<?php if (isset($msg[1])) { //error trigged by framepress  ?>
-						<?php echo ucfirst($this->Core->config['prefix']); ?> <?php echo $e['level'];?> on <?php echo $e['core.status']['request.type']; ?> <b><?php echo $e['core.status']['request']; ?></b>: <a href="" onclick="jQuery('#<?php echo $id;?>').toggle(); return false;"><?php echo $msg[0]; ?></a>
+						<?php echo ucfirst($this->Core->config['prefix']); ?> <?php echo $e['level'];?> on <?php echo $e['core.status']['call.type']; ?> <b><?php echo $e['core.status']['call']; ?></b>: <a href="" onclick="jQuery('#<?php echo $id;?>').toggle(); return false;"><?php echo $msg[0]; ?></a>
 					<?php } else { ?>
 						<?php echo ucfirst($this->Core->config['prefix']); ?> <?php echo $e['level'];?> on file <b><?php echo $e['file']; ?></b> (line <?php echo $e['line']; ?>): <a href="" onclick="jQuery('#<?php echo $id;?>').toggle(); return false;"><?php echo $msg[0]; ?></a>
 					<?php }?>
@@ -41,6 +42,7 @@
 			<?php }?>
 			</div>
 		</div>
+
 	</body>
 </html>
 

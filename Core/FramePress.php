@@ -61,7 +61,6 @@ class FramePress_010
 			'lib' => $fullpath . DS . 'Lib',
 			'views' => $fullpath . DS . 'Views',
 			'layouts' => $fullpath . DS . 'Views' . DS . 'Layouts',
-			'elements' => $fullpath . DS . 'Views' . DS . 'Elements',
 			'lang' => $foldername . DS . 'Languages',
 			'resource' => $fullpath . DS . 'Resources',
 			'img' => $fullpath . DS . 'Resources' . DS . 'img',
@@ -113,6 +112,7 @@ class FramePress_010
 		//Load lenguaje dictionary
 		if ($this->config['use.i18n']) {
 			$domain = (!is_bool($this->config['use.i18n']))? $this->config['use.i18n'] : $this->config['prefix'];
+			$this->config['use.i18n'] = $domain;
 			load_plugin_textdomain( $domain, false, $this->paths['lang'] );
 		}
 
@@ -177,26 +177,42 @@ class FramePress_010
 	public function load ($type, $name, $args = null)
 	{
 		$info = $this->fileInfo($type, $name);
+		$t =  $info['type_base'];
+		$n =  $info['name'];
 
-		$this->status['loading'] = $info;
+		if($t != 'Core') {
+			$this->Request->current('loading', $info);
+		}
 
-		if(!isset($this->modules[$info['type_base']][$info['name']])){
 
-			//check && require file
+		if(!isset($this->modules[$t][$n])){
+
 			if($this->fileCheck($info)){
 				require_once($info['file']);
 			} else {
 				return false;
 			}
 
-			//get class name, instance  and register object
-			$className = $this->fileClassName($info['type_base'], $info['name']);
+			//get class name
+			$className = $this->fileClassName($t, $n);
+			if(!$className) {
+				$this->modules[$t][$n] = new stdClass();
+				return false;
+			}
 
-			$this->modules[$info['type_base']][$info['name']] = new $className($this, $args);
+			$this->modules[$t][$n] = new $className($this, $args);
 		}
 
-		unset($this->status['loading']);
 
+		//bad controller is called again from another hook/shortcode/adminpage/etc
+		if( $this->modules[$t][$n] instanceof stdClass) {
+			$this->fileClassName($t, $n);
+			return false;
+		}
+
+		if($t != 'Core') {
+			$this->Request->current('loading', false);
+		}
 		return $this->modules[$info['type_base']][$info['name']];
 	}
 
@@ -235,7 +251,7 @@ class FramePress_010
 	private function fileClassName ($type, $name)
 	{
 		if($type == 'Controller'){
-			return $this->config['prefix'] .  ucfirst(basename($name));
+			$className = $this->Request->current('controller.class');
 		} else {
 
 			/**
@@ -251,8 +267,22 @@ class FramePress_010
 
 			// return the content of the global var (the real class name)
 			global $$globalExportVarName;
-			return $$globalExportVarName;
+			$className =  $$globalExportVarName;
 		}
+
+		if($type != 'Core'){
+			$l = $this->Request->current('loading');
+			$l['class_name'] = $className;
+			$l = $this->Request->current('loading', $l);
+		}
+
+
+		if (!class_exists($className)){
+			trigger_error('Missing Class | FramePress' );
+			return false;
+		}
+
+		return $className;
 	}
 
 

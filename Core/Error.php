@@ -1,8 +1,8 @@
 <?php
 
 //define core class
-if (!class_exists('FramePress_Error_001')) {
-class FramePress_Error_001
+if (!class_exists('FramePress_Error_002')) {
+class FramePress_Error_002
 {
 	public $errors = array();
 	public $shutdown = false;
@@ -26,7 +26,7 @@ class FramePress_Error_001
 		//shutdown
 		$e = error_get_last();
 		if (!$level && $e) {
-			//is shutdown and  there is a captured error
+			//is shutdown bacause error ocurred
 			$level = $e['type']; $message=$e['message']; $file= $e['file']; $line = $e['line'];
 			$this->shutdown =  true;
 		} elseif (!$level && !$e && $this->errors) {
@@ -48,7 +48,7 @@ class FramePress_Error_001
 			'message' =>$message,
 			'file'=> $file,
 			'line' => $line,
-			'core.status' => $this->Core->status
+			'core.status' => array_merge($this->Core->status, $this->Core->Request->current())
 		);
 
 		$this->takeAction();
@@ -58,18 +58,14 @@ class FramePress_Error_001
 	//handle error depending on type
 	public function takeAction ()
 	{
-		//dont take action if debug is deactivated
-		if( !$this->Core->config['debug']) {
-			return true;
-		}
-
 		//shutdown response
 		if( $this->shutdown ) {
-			$this->printDebug(); return true;
+			$this->Core->Response->printDebug(); return true;
 		}
 
 		//hook errors are shown on shutdown
-		$rq = (isset($this->Core->status['request.type']))?$this->Core->status['request.type']:null;
+		$req = $this->Core->Request->current();
+		$rq = (isset($req['call.type']))?$req['call.type']:null;
 		if ( $rq == 'hook' ) {
 			return true;
 		}
@@ -84,44 +80,15 @@ class FramePress_Error_001
 			return;
 		}
 
-		//this two types are shown on shutdown
-		if ( in_array($e_type[0], array('Missing File', 'Unreadable File'))  ) {
+		//load errors not related with controllers are shown in shutdown
+		if ( isset( $error['core.status']['loading']['type']) &&  $error['core.status']['loading']['type'] != 'Controller') {
 			return;
 		}
 
 		// show/print errors trigged by framepress (missing controller, missing method, etc)
 		//for printable elements (metaboxes, shorcodes, admin pages)
 
-		//set info to the view
-		$this->Core->View->set('error', $this->lastError(), $this->viewContext);
-		$viewRequest = (isset($this->Core->View->contexts[$e_type[1]]['request']))?$this->Core->View->contexts[$e_type[1]]['request']: null;
-		if($viewRequest){
-			$this->Core->View->set('view', $viewRequest, $this->viewContext);
-		}
-
-		//parse response
-		$view = 'Errors/'.sanitize_title($e_type[0]);
-		$this->Core->View->layout('error', $this->viewContext);
-		return $this->Core->Response->parseError($view, $this->viewContext);
-	}
-
-	public function printDebug()
-	{
-		//if is ajax  return a json error
-		if(defined('DOING_AJAX') && DOING_AJAX && !empty( $_REQUEST['action'] )){
-			$this->Core->Response->type = 'application/json';
-			$this->Core->Response->body =  $this->errors;
-			$this->Core->Response->sendResponse();
-		} else {
-			$this->Core->View->set('errors', $this->errors, $this->viewContext);
-			if(ob_get_length() > 0 || headers_sent()) {
-				$this->Core->View->layout('error', $this->viewContext);
-				$this->Core->Response->parseError('Errors/shutdown', $this->viewContext);
-			} else {
-				$this->Core->View->layout('default', $this->viewContext);
-				$this->Core->Response->parseError('Errors/shutdown.complete', $this->viewContext);
-			}
-		}
+		return $this->Core->Response->error(sanitize_title($e_type[0]));
 	}
 
 	public function mapErrorCode($code)
@@ -158,7 +125,7 @@ class FramePress_Error_001
 
 	public function lastError()
 	{
-		return $this->errors[count($this->errors) -1];
+		return end($this->errors);
 	}
 
 
@@ -168,5 +135,5 @@ class FramePress_Error_001
 
 
 //Export framework className
-$GLOBALS["FramePressError"] = 'FramePress_Error_001';
-$FramePressError = 'FramePress_Error_001';
+$GLOBALS["FramePressError"] = 'FramePress_Error_002';
+$FramePressError = 'FramePress_Error_002';

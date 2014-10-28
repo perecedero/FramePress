@@ -1,10 +1,12 @@
 <?php
 
 //define core class
-if (!class_exists('FramePress_Request_001')) {
-class FramePress_Request_001
+if (!class_exists('FramePress_Request_002')) {
+class FramePress_Request_002
 {
 	public $Core = null;
+
+	public $queue = array();
 
 	public function __construct(&$fp)
 	{
@@ -33,44 +35,38 @@ class FramePress_Request_001
 		}
 
 		//set call status
-		$this->Core->status = array_merge( $this->Core->status, array(
-			'request' => $req,
-			'request.type' => $type,
+		$this->queue[] = array(
+			'call' => $req,
+			'call.type' => $type,
+			'controller.file' => $this->Core->paths['controller'] . DS . $controller_requested . '.php',
 			'controller.name' => $controller_requested,
 			'controller.class' => ucfirst($this->Core->config['prefix']) . ucfirst($controller_requested),
 			'controller.method' => $function_requested,
 			'controller.method.args' => $args,
-			'controller.file' => $this->Core->paths['controller'] . DS . $controller_requested . '.php'
-		));
+			'controller.object' => null,
+			'response.code' => 200,
+			'response.type' => null,
+			'response.body' => null,
+		);
 
+		return $this->check();
 	}
 
 	public function check()
 	{
-		$name = $this->Core->status['controller.name'];
-		if( !$this->Core->isLoaded('Controller', $name)){
-			//check controller file
-			if(!file_exists($this->Core->status['controller.file'])) {
-				trigger_error('Missing Controller File | FramePress' );
-				return false;
-			}
-			if(!is_readable($this->Core->status['controller.file'])) {
-				trigger_error('Unreadable Controller File | FramePress' );
-				return false;
-			}
+		$req =  $this->current();
 
-			//import controller && check class
-			require_once($this->Core->status['controller.file']);
-			if (!class_exists($this->Core->status['controller.class'])){
-				trigger_error('Missing Controller Class | FramePress' );
-				return false;
-			}
-		}
+		$name = $req['controller.name'];
 
 		//create the controller object && check method
-		$this->Core->status['controller.object'] =  $this->Core->load('Controller', $name);
+		$obj =  $this->Core->load('Controller', $name);
+		if(!$obj){
+			return false;
+		}
 
-		if(!method_exists($this->Core->status['controller.object'], $this->Core->status['controller.method'])){
+		$this->current('controller.object', $obj);
+
+		if(!method_exists($obj, $req['controller.method'])){
 			trigger_error('Missing Method | FramePress' );
 			return false;
 		}
@@ -78,9 +74,45 @@ class FramePress_Request_001
 		return true;
 	}
 
+	public function current($key = null, $value= null)
+	{
+		//pr($this->queue);
+
+		if(!$key){
+
+			//call to current() and no queue;
+			if(!$this->queue){ return array(); }
+
+			//return the last request with all the values
+			else { return end($this->queue); }
+
+		} else if ($key && $value === null) {
+
+			//call to current($key) and no queue;
+			if(!$this->queue){ return null; }
+			else{
+				$last = end($this->queue);
+				return $last[$key];
+			}
+		} else {
+
+			//call to current($key, $value) and no queue;
+			if(!$this->queue){ return null; }
+			else {
+				end($this->queue);
+				$i = key($this->queue);
+				return $this->queue[$i][$key] = $value;
+			}
+		}
+	}
+	public function finish($name = null, $value= null)
+	{
+		return array_pop ($this->queue);
+	}
+
  }//end class
 }//end if class exist
 
 //Export framework className
-$GLOBALS["FramePressRequest"] = 'FramePress_Request_001';
-$FramePressRequest = 'FramePress_Request_001';
+$GLOBALS["FramePressRequest"] = 'FramePress_Request_002';
+$FramePressRequest = 'FramePress_Request_002';

@@ -9,7 +9,7 @@
 		#hook-errors	 .error-item:nth-child(even) { background: #4F4F4F; }
 		#hook-errors	 .error-item:nth-child(odd) { background: #3D3D3D; }
 		#hook-errors	 .error-item {  border-top: 1px solid tomato }
-		#hook-errors	 .error-item .panel {display: none; border-left: 2px solid tomato; background: #2E3436; color:#fff; margin: 10px 0; padding: 5px; border-radius: 5px; font-size: 12px; }
+		#hook-errors	 .error-item .panel {display: none; border-left: 2px solid tomato; background: #2E3436; color:#fff; margin: 10px 0; padding: 5px; border-radius: 5px; font-size: 12px; max-height: 300px; overflow-y: scroll;}
 	</style>
 
 	<div id="hook-errors">
@@ -19,7 +19,7 @@
 				<?php $msg = explode(' | ', $e['message']); ?>
 				<?php $id = md5(serialize($e)); ?>
 				<?php if (isset($msg[1])) { //error trigged by framepress  ?>
-					<?php echo ucfirst($this->Core->config['prefix']); ?> <?php echo $e['level'];?> on <?php echo $e['core.status']['request.type']; ?> <b><?php echo $e['core.status']['request']; ?></b>: <a href="" onclick="jQuery('#<?php echo $id;?>').toggle(); return false;"><?php echo $msg[0]; ?></a>
+					<?php echo ucfirst($this->Core->config['prefix']); ?> <?php echo $e['level'];?> on <?php echo $e['core.status']['call.type']; ?> <b><?php echo $e['core.status']['call']; ?></b>: <a href="" onclick="jQuery('#<?php echo $id;?>').toggle(); return false;"><?php echo $msg[0]; ?></a>
 				<?php } else { ?>
 					<?php echo ucfirst($this->Core->config['prefix']); ?> <?php echo $e['level'];?> on file <b><?php echo $e['file']; ?></b> (line <?php echo $e['line']; ?>): <a href="" onclick="jQuery('#<?php echo $id;?>').toggle(); return false;"><?php echo $msg[0]; ?></a>
 				<?php }?>

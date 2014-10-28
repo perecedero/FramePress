@@ -1,8 +1,8 @@
 <?php
 
 //define core class
-if (!class_exists('FramePress_View_001')) {
-class FramePress_View_001
+if (!class_exists('FramePress_View_002')) {
+class FramePress_View_002
 {
 
 	public $Core = null;
@@ -54,6 +54,8 @@ class FramePress_View_001
 
 		$fpr_info = $this->aaa($file, $fpr_args);
 
+		$this->Core->Request->current('rendering', $fpr_info);
+
 		//Check the file
 		if(!file_exists($fpr_info['file'])){
 			trigger_error('Missing View | '.$fpr_args['context'], E_USER_WARNING);
@@ -85,6 +87,8 @@ class FramePress_View_001
 			$fpl_buffer = @ob_get_contents();
 		@ob_end_clean();
 
+		$this->Core->Request->current('rendering', false);
+
 		if ($fpr_args['print']){
 			echo $fpl_buffer;
 			return true;
@@ -95,15 +99,17 @@ class FramePress_View_001
 
 	public function aaa($file= null, $args)
 	{
-		$viewFolder =  @$this->Core->status['controller.name'];
-		$viewName =  @$this->Core->status['controller.method'];
+		$req = $this->Core->Request->current();
+
+		$viewFolder =  @$req['controller.name'];
+		$viewName =  @$req['controller.method'];
 		$path = @$this->Core->paths['views'];
 		$corepath = @$this->Core->paths['core.views'];
 
 		//Find The view
 		if($file){
 
-			$name = rtrim($file, '.php') . '.php';
+			$name = preg_replace('/.php$/s', '', $file) . '.php';
 
 			if( is_file($file) ){
 				$info = $this->bbb($file);
@@ -143,13 +149,15 @@ class FramePress_View_001
 
 	public function ccc ($args)
 	{
+		$req = $this->Core->Request->current();
+
 		$layout = (isset($this->contexts[$args['context']]['layout']))?$this->contexts[$args['context']]['layout']: '';
 		$path =$this->Core->paths['layouts'];
 		$corepath =$this->Core->paths['core.views.layouts'];
 
 		if(!$layout){
-			if(isset($this->Core->status['controller.object']->layout)){
-				$layout = $path . DS . $this->Core->status['controller.object']->layout . '.php';
+			if(isset($req['controller.object']->layout)){
+				$layout = $path . DS . $req['controller.object']->layout . '.php';
 			} else {
 				$layout = $this->Core->paths['core.views.layouts'] . DS . 'default.php';
 			}
@@ -171,5 +179,5 @@ class FramePress_View_001
 }//end if class exist
 
 //Export framework className
-$GLOBALS["FramePressView"] = 'FramePress_View_001';
-$FramePress = 'FramePress_View_001';
+$GLOBALS["FramePressView"] = 'FramePress_View_002';
+$FramePress = 'FramePress_View_002';
