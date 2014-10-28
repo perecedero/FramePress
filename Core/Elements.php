@@ -15,8 +15,8 @@
  */
 
 //define core class
-if (!class_exists('FramePress_Elements_001')) {
-class FramePress_Elements_001
+if (!class_exists('FramePress_Elements_002')) {
+class FramePress_Elements_002
 {
 	/**
 	 * Local Reference to the framework core object
@@ -50,9 +50,8 @@ class FramePress_Elements_001
 		}
 
 		//Gets the template
-		$element = $this->Core->paths['elements'] . DS . rtrim($template, '.php') . '.php';
+		$element = 'Elements' . DS . $template;
 		return $this->Core->View->render($element, array(
-			'print' => false,
 			'context' =>'framepress.elements'
 		));
 	}
@@ -61,5 +60,5 @@ class FramePress_Elements_001
 }//end if class exists
 
 //Export framework className
-$GLOBALS["FramePressElements"] = 'FramePress_Elements_001';
-$FramePressElements = 'FramePress_Elements_001';
+$GLOBALS["FramePressElements"] = 'FramePress_Elements_002';
+$FramePressElements = 'FramePress_Elements_002';
