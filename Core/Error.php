@@ -1,8 +1,8 @@
 <?php
 
 //define core class
-if (!class_exists('FramePress_Error_002')) {
-class FramePress_Error_002
+if (!class_exists('FramePress_Error_003')) {
+class FramePress_Error_003
 {
 	public $errors = array();
 	public $shutdown = false;
@@ -16,43 +16,60 @@ class FramePress_Error_002
 		$this->Core = $fp;
 	}
 
-	public function capture($level = null, $message=null, $file= null, $line = null, $context=null)
+	public function set($message, $level= null, $file=null, $line =null, $fromframepress = true)
+	{
+		if(!$level) {$level = E_USER_WARNING;}
+
+        ob_start();
+        debug_print_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS);
+        $trace = ob_get_contents();
+        ob_end_clean();
+
+		$this->errors[] = array(
+			'level' => $this->mapErrorCode($level),
+			'message' =>$message,
+			'file' =>$file,
+			'line' =>$line,
+			'trace' =>  $trace,
+			'request' => $this->Core->Request->current(),
+			'from.framepress' => $fromframepress
+		);
+
+		$this->takeAction();
+		return;
+	}
+
+	public function capture($level = null, $message=null, $file = null, $line = null)
 	{
 		//escape reports with @
 		if( 0 == ini_get( "error_reporting" ) || 0 == error_reporting() ){
 			return;
 		}
 
+		$this->set($message, $level, $file, $line, false);
+
+		return;
+	}
+
+	public function shutdown()
+	{
 		//shutdown
 		$e = error_get_last();
-		if (!$level && $e) {
+
+		if ($e) {
 			//is shutdown bacause error ocurred
-			$level = $e['type']; $message=$e['message']; $file= $e['file']; $line = $e['line'];
 			$this->shutdown =  true;
-		} elseif (!$level && !$e && $this->errors) {
+			$this->set($e['message'], $e['type'], $e['file'], $e['line'], false);
+
+		} elseif ( !$e && $this->errors) {
 			//is shutdown and there are erros stored
 			$this->shutdown =  true;
-			return $this->takeAction();
-		} elseif (!$level && !$e && !$this->errors) {
+			$this->takeAction();
+
+		} elseif (!$e && !$this->errors) {
 			//is shutdown and there are not erros stored
 			return false;
 		}
-
-		//solo informar error si  $file se encuentra en el path de este plugin
-		if(strpos($file, $this->Core->status['plugin.fullpath']) === false){
-			return false;
-		}
-
-		$this->errors[] = array(
-			'level' => $this->mapErrorCode($level),
-			'message' =>$message,
-			'file'=> $file,
-			'line' => $line,
-			'core.status' => array_merge($this->Core->status, $this->Core->Request->current())
-		);
-
-		$this->takeAction();
-		return;
 	}
 
 	//handle error depending on type
@@ -63,32 +80,28 @@ class FramePress_Error_002
 			$this->Core->Response->printDebug(); return true;
 		}
 
-		//hook errors are shown on shutdown
-		$req = $this->Core->Request->current();
-		$rq = (isset($req['call.type']))?$req['call.type']:null;
-		if ( $rq == 'hook' ) {
-			return true;
-		}
-
 		//get error
 		$error = $this->lastError();
-		$e_type = explode(' | ', $error['message']);
-		$is_trigged_by_framepress = isset($e_type[1]);
 
 		//any error not trigged by FramePress will be shown at shutdown
-		if ( !$is_trigged_by_framepress ) {
+		if ( !$error['from.framepress'] ) {
 			return;
 		}
 
+		//hook errors are shown on shutdown
+		if ( isset( $error['request']['call.type']) &&  $error['request']['call.type'] == 'hook') {
+			return true;
+		}
+
 		//load errors not related with controllers are shown in shutdown
-		if ( isset( $error['core.status']['loading']['type']) &&  $error['core.status']['loading']['type'] != 'Controller') {
+		if ( isset( $error['request']['loading']['type']) &&  $error['request']['loading']['type'] != 'Controller') {
 			return;
 		}
 
 		// show/print errors trigged by framepress (missing controller, missing method, etc)
 		//for printable elements (metaboxes, shorcodes, admin pages)
 
-		return $this->Core->Response->error(sanitize_title($e_type[0]));
+		return $this->Core->Response->error(sanitize_title($error['message']));
 	}
 
 	public function mapErrorCode($code)
@@ -135,5 +148,5 @@ class FramePress_Error_002
 
 
 //Export framework className
-$GLOBALS["FramePressError"] = 'FramePress_Error_002';
-$FramePressError = 'FramePress_Error_002';
+$GLOBALS["FramePressError"] = 'FramePress_Error_003';
+$FramePressError = 'FramePress_Error_003';

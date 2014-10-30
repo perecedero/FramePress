@@ -1,7 +1,7 @@
 <?php
-	$type = $error['core.status']['loading']['type'];
-	$file = $error['core.status']['loading']['file'];
-	$file_nice = substr( $file, strpos($file, $error['core.status']['plugin.foldername']));
+	$type = $error['request']['loading']['type'];
+	$file = $error['request']['loading']['file'];
+	$file_nice = substr( $file, strpos($file, $this->Core->status['plugin.foldername']));
 ?>
 <div class="padd">
 	<h1>Missing <?php echo $type?> file</h1>

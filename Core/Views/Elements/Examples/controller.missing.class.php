@@ -3,7 +3,7 @@
 <pre class="code">
 &lt;?<b>php</b>
 
-<b>class</b> <?php echo $e['core.status']['loading']['class_name']; ?> {
+<b>class</b> <?php echo $e['request']['loading']['class_name']; ?> {
 
     <b>public function</b> index()
     {

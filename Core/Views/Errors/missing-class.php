@@ -1,8 +1,8 @@
 <?php
-	$type = $error['core.status']['loading']['type'];
-	$file = $error['core.status']['loading']['file'];
-	$file_nice = substr( $file, strpos($file, $error['core.status']['plugin.foldername']));
-	$class = $error['core.status']['loading']['class_name'];
+	$type = $error['request']['loading']['type'];
+	$file = $error['request']['loading']['file'];
+	$file_nice = substr( $file, strpos($file, $this->Core->status['plugin.foldername']));
+	$class = $error['request']['loading']['class_name'];
 ?>
 
 <div class="padd">

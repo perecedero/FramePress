@@ -1,8 +1,8 @@
 <?php
 
 //define core class
-if (!class_exists('FramePress_Request_002')) {
-class FramePress_Request_002
+if (!class_exists('FramePress_Request_003')) {
+class FramePress_Request_003
 {
 	public $Core = null;
 
@@ -67,7 +67,7 @@ class FramePress_Request_002
 		$this->current('controller.object', $obj);
 
 		if(!method_exists($obj, $req['controller.method'])){
-			trigger_error('Missing Method | FramePress' );
+			$this->Core->Error->set('Missing Method');
 			return false;
 		}
 
@@ -114,5 +114,5 @@ class FramePress_Request_002
 }//end if class exist
 
 //Export framework className
-$GLOBALS["FramePressRequest"] = 'FramePress_Request_002';
-$FramePressRequest = 'FramePress_Request_002';
+$GLOBALS["FramePressRequest"] = 'FramePress_Request_003';
+$FramePressRequest = 'FramePress_Request_003';

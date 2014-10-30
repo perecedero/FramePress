@@ -1,4 +1,4 @@
 <div class="update-nag">
-	The layout <b><?php echo  basename($fpr_error['layout']); ?></b> was not found.
+	The layout <b><?php echo  basename($error['request']['rendering']['layout']); ?></b> was not found.
 	Using default one instead.
 </div>

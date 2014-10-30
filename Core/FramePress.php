@@ -21,8 +21,8 @@ if(!defined('DIRECTORY_SEPARATOR')){define('DIRECTORY_SEPARATOR', '/');}
 if(!defined('DS')){define('DS', DIRECTORY_SEPARATOR);}
 
 //Define core class
-if (!class_exists('FramePress_010')) {
-class FramePress_010
+if (!class_exists('FramePress_011')) {
+class FramePress_011
 {
     public $modules;
 
@@ -50,25 +50,27 @@ class FramePress_010
 	{
 		$fullpath = dirname($main_file);
 		$foldername = basename(dirname($main_file));
+		$blogurl = get_bloginfo( 'wpurl' );
 
 		//set partial paths
 		$this->paths = array (
 			'plugin' => $fullpath,
+
 			'core' => $fullpath . DS . 'Core',
 			'core.views' => $fullpath . DS . 'Core' . DS . 'Views',
-			'core.views.layouts' => $fullpath . DS . 'Core' . DS . 'Views' . DS . 'Layouts',
+			'core.img.url' => $blogurl . '/wp-content/plugins/' . $foldername . '/Core/Assets/img',
+			'core.css.url' => $blogurl . '/wp-content/plugins/' . $foldername . '/Core/Assets/css',
+			'core.js.url' => $blogurl. '/wp-content/plugins/' . $foldername . '/Core/Assets/js',
+
 			'controller' => $fullpath . DS . 'Controllers',
 			'lib' => $fullpath . DS . 'Lib',
 			'views' => $fullpath . DS . 'Views',
-			'layouts' => $fullpath . DS . 'Views' . DS . 'Layouts',
 			'lang' => $foldername . DS . 'Languages',
-			'resource' => $fullpath . DS . 'Resources',
-			'img' => $fullpath . DS . 'Resources' . DS . 'img',
-			'img.url' => get_bloginfo( 'wpurl' ) . '/wp-content/plugins/' . $foldername . '/Resources/img',
-			'css' => $fullpath . DS . 'Resources' . DS . 'css',
-			'css.url' => get_bloginfo( 'wpurl' ) . '/wp-content/plugins/' . $foldername . '/Resources/css',
-			'js' => $fullpath . DS . 'Resources' . DS . 'js',
-			'js.url' => get_bloginfo( 'wpurl' ). '/wp-content/plugins/' . $foldername . '/Resources/js',
+			'assets' => $fullpath . DS . 'Assets',
+
+			'img.url' => $blogurl . '/wp-content/plugins/' . $foldername . '/Assets/img',
+			'css.url' => $blogurl . '/wp-content/plugins/' . $foldername . '/Assets/css',
+			'js.url' => $blogurl. '/wp-content/plugins/' . $foldername . '/Assets/js',
 		);
 
 		//set partial status
@@ -84,7 +86,9 @@ class FramePress_010
 		if($this->config['debug']) {
 			@set_error_handler(array($this->Error, 'capture'));
 			@ini_set('display_errors', false);
-			@register_shutdown_function (array($this->Error, 'capture'));
+			@register_shutdown_function (array($this->Error, 'shutdown'));
+			add_action('admin_enqueue_scripts', array($this, '_addScripts'));
+			add_action('wp_enqueue_scripts', array($this, '_addScripts'));
 		}
 
 		//Register activation and deactivation functions
@@ -97,7 +101,7 @@ class FramePress_010
 
     public function __get($name)
     {
-		return $this->load('Core', $name);
+		return $this->$name = $this->load('Core', $name);
     }
 
 	//------------------------------------------------------------------------------------------------------------------
@@ -116,8 +120,26 @@ class FramePress_010
 			load_plugin_textdomain( $domain, false, $this->paths['lang'] );
 		}
 
+		if($this->config['debug']) {
+			wp_deregister_script( 'FramePressErrors' );
+			wp_register_script( 'FramePressErrors', $this->paths['core.js.url'] . DS . 'error.js',  array('jquery'), time(), false);
+			wp_deregister_style( 'FramePressErrors' );
+			wp_register_style( 'FramePressErrors', $this->paths['core.css.url'] . DS . 'error.css');
+		}
+
 		//Start the output capture
 		@ob_start();
+	}
+
+	/**
+	 * Initialize the framework
+	 *
+	 * @return void
+	*/
+	public function _addScripts ()
+	{
+		wp_enqueue_script('FramePressErrors');
+		wp_enqueue_style('FramePressErrors');
 	}
 
 	/**
@@ -238,10 +260,11 @@ class FramePress_010
 	private function fileCheck($info)
 	{
 		if(!file_exists($info['file'])) {
-			trigger_error('Missing File | FramePress', E_USER_WARNING );
+			$this->Error->set('Missing File');
 			return false;
 		} elseif(!is_readable($info['file'])) {
-			trigger_error('Unreadable File | FramePress', E_USER_WARNING );
+			$fp_status = $this->status;
+			$this->Error->set('Unreadable File');
 			return false;
 		} else {
 			return true;
@@ -278,7 +301,7 @@ class FramePress_010
 
 
 		if (!class_exists($className)){
-			trigger_error('Missing Class | FramePress' );
+			$this->Error->set('Missing Class');
 			return false;
 		}
 
@@ -380,8 +403,8 @@ class FramePress_010
 }//end if class exists
 
 //Export framework className
-$GLOBALS["FramePress"] = 'FramePress_010';
-$FramePress = 'FramePress_010';
+$GLOBALS["FramePress"] = 'FramePress_011';
+$FramePress = 'FramePress_011';
 
 if(!function_exists('framePressGet')){
 	function framePressGet($configuration = array())

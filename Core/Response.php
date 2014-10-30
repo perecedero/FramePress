@@ -82,11 +82,6 @@ class FramePress_Response_002
 			$this->Core->View->layout('error', $context);
 			$this->Core->View->set('error', $this->Core->Error->lastError(), $context);
 
-			//~ $viewRequest = (isset($this->Core->View->contexts[$e_type[1]]['request']))?$this->Core->View->contexts[$e_type[1]]['request']: null;
-			//~ if($viewRequest){
-				//~ $this->Core->View->set('view', $viewRequest, $this->viewContext);
-			//~ }
-
 			//parse response
 			$this->Core->View->render('Errors/'.$error, array('print' => true, 'context' =>$context));
 		}
@@ -100,16 +95,15 @@ class FramePress_Response_002
 			$this->body( $this->Core->Error->errors );
 			$this->send();
 		} else {
+
 			if(ob_get_length() > 0 || headers_sent()) {
-				$layout = 'error';
 				$view ='Errors/shutdown';
 			} else {
-				$layout = 'default';
 				$view = 'Errors/shutdown.complete';
 			}
 
 			$this->Core->View->set('errors', $this->Core->Error->errors, $this->Core->Error->viewContext);
-			$this->Core->View->layout($layout, $this->Core->Error->viewContext);
+			$this->Core->View->layout('default', $this->Core->Error->viewContext);
 			$this->Core->View->render($view, array('print' => true, 'context' =>$this->Core->Error->viewContext));
 		}
 	}

@@ -1,8 +1,8 @@
 <?php
 
 //define core class
-if (!class_exists('FramePress_View_002')) {
-class FramePress_View_002
+if (!class_exists('FramePress_View_003')) {
+class FramePress_View_003
 {
 
 	public $Core = null;
@@ -39,7 +39,7 @@ class FramePress_View_002
 	public function layout ($layout = null, $context = null)
 	{
 		$context  = ($context)? $context : $this->context;
-		$this->contexts[$context]['layout'] = $this->Core->paths['layouts'] . DS . $layout. '.php';
+		$this->contexts[$context]['layout'] = $this->Core->paths['views'] . DS . 'Layouts' . DS . $layout. '.php';
 	}
 
 	/**
@@ -58,11 +58,12 @@ class FramePress_View_002
 
 		//Check the file
 		if(!file_exists($fpr_info['file'])){
-			trigger_error('Missing View | '.$fpr_args['context'], E_USER_WARNING);
+			$this->Core->Error->set('Missing View');
 			return false;
 		}
+
 		if(!is_readable($fpr_info['file'])){
-			trigger_error('Unreadable View | '.$fpr_args['context'], E_USER_WARNING);
+			$this->Core->Error->set('Unreadable View');
 			return false;
 		}
 
@@ -152,22 +153,22 @@ class FramePress_View_002
 		$req = $this->Core->Request->current();
 
 		$layout = (isset($this->contexts[$args['context']]['layout']))?$this->contexts[$args['context']]['layout']: '';
-		$path =$this->Core->paths['layouts'];
-		$corepath =$this->Core->paths['core.views.layouts'];
+		$path =$this->Core->paths['views'] . DS . 'Layouts';
+		$corepath =$this->Core->paths['core.views']. DS . 'Layouts';
 
 		if(!$layout){
 			if(isset($req['controller.object']->layout)){
 				$layout = $path . DS . $req['controller.object']->layout . '.php';
 			} else {
-				$layout = $this->Core->paths['core.views.layouts'] . DS . 'default.php';
+				$layout = $corepath . DS .'default.php';
 			}
 		} else if( !file_exists($layout)) {
 			$core_layout =str_replace( $path, $corepath , $layout);
 			if( file_exists($core_layout) ){
 				$layout = $core_layout;
 			} else {
-				$layout = $this->Core->paths['core.views.layouts'] . DS . 'default.php';
-				trigger_error('Missing Layout | '.$args['context'] );
+				$layout = $corepath . DS .'default.php';
+				$this->Core->Error->set('Missing Layout');
 			}
 		}
 
@@ -179,5 +180,5 @@ class FramePress_View_002
 }//end if class exist
 
 //Export framework className
-$GLOBALS["FramePressView"] = 'FramePress_View_002';
-$FramePress = 'FramePress_View_002';
+$GLOBALS["FramePressView"] = 'FramePress_View_003';
+$FramePress = 'FramePress_View_003';

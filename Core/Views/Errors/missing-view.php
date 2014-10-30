@@ -1,6 +1,6 @@
 <?php
-	$file = $error['core.status']['rendering']['file'];
-	$file_nice = substr( $file, strpos($file, $error['core.status']['plugin.foldername']));
+	$file = $error['request']['rendering']['file'];
+	$file_nice = substr( $file, strpos($file, $this->Core->status['plugin.foldername']));
 ?>
 
 <div class="padd">
