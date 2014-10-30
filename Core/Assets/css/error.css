@@ -1,0 +1,23 @@
+	/*error views (shortcodes / admin pages / metaboxes)*/
+	.fp { font-size:14px; }
+	.fp p {font-size:16px; }
+	.fp p b {font-size:17px; color: tomato;}
+	.fp .padd {padding: 30px;}
+	.fp pre { background: #2E3436; color:#fff; padding: 5px; border-radius: 5px; font-size: 18px; line-height: 30px;}
+	.fp pre i {color: #90EE90;}
+	.fp pre b {color: #90CAEE; font-weight: bold; font-size:20px;}
+
+	/*bottom error bar*/
+	body {margin:0; padding:0;}
+	#framepress-errors	 {position: fixed; bottom:0; width:100%; border-top: 5px solid #565656; color: white; z-index:99999;}
+	#framepress-errors	 .error-item {padding: 10px;}
+	#framepress-errors	 .error-item h3{ font-size: 1.3em; color: tomato;}
+	#framepress-errors	 .error-item b.msg {font-size: 16px; color: #ADD8E6;}
+	#framepress-errors	 .error-item:nth-child(even) { background: #4F4F4F; }
+	#framepress-errors	 .error-item:nth-child(odd) { background: #3D3D3D; }
+	#framepress-errors	 .error-item {  border-top: 1px solid tomato }
+	#framepress-errors	 .error-item .panel {display: none; border-left: 2px solid tomato; background: #2E3436; color:#fff; margin: 10px 0; padding: 5px; border-radius: 5px; font-size: 12px; max-height: 300px; overflow-y: scroll;}
+
+	/*shutdown error complete page*/
+	.framepress-errors.content {font-family: 'Exo 2', sans-serif;  font-weight: 100; text-align: center; }
+	.framepress-errors.content h1{font-size: 50px;  font-weight: 100;}
