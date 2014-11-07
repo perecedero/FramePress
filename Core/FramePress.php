@@ -21,8 +21,8 @@ if(!defined('DIRECTORY_SEPARATOR')){define('DIRECTORY_SEPARATOR', '/');}
 if(!defined('DS')){define('DS', DIRECTORY_SEPARATOR);}
 
 //Define core class
-if (!class_exists('FramePress_011')) {
-class FramePress_011
+if (!class_exists('FramePress_012')) {
+class FramePress_012
 {
     public $modules;
 
@@ -63,10 +63,14 @@ class FramePress_011
 			'core.js.url' => $blogurl. '/wp-content/plugins/' . $foldername . '/Core/Assets/js',
 
 			'controller' => $fullpath . DS . 'Controllers',
-			'lib' => $fullpath . DS . 'Lib',
 			'views' => $fullpath . DS . 'Views',
+			'lib' => $fullpath . DS . 'Lib',
 			'lang' => $foldername . DS . 'Languages',
+
 			'assets' => $fullpath . DS . 'Assets',
+			'img' => $fullpath . DS . 'Assets' . DS . 'img',
+			'css' => $fullpath . DS . 'Assets' . DS . 'css',
+			'js' => $fullpath . DS . 'Assets' . DS . 'js',
 
 			'img.url' => $blogurl . '/wp-content/plugins/' . $foldername . '/Assets/img',
 			'css.url' => $blogurl . '/wp-content/plugins/' . $foldername . '/Assets/css',
@@ -96,7 +100,7 @@ class FramePress_011
 		register_deactivation_hook($this->status['plugin.foldername'] . DS . $this->status['plugin.mainfile'], array($this, '_deactivation'));
 		register_uninstall_hook($this->status['plugin.foldername'] . DS . $this->status['plugin.mainfile'], array($this, '_uninstall'));
 
-		add_action('init', array($this, '_Init'));
+		add_action('init', array($this, '_Init'), 100);
 	}
 
     public function __get($name)
@@ -129,6 +133,7 @@ class FramePress_011
 
 		//Start the output capture
 		@ob_start();
+
 	}
 
 	/**
@@ -274,7 +279,7 @@ class FramePress_011
 	private function fileClassName ($type, $name)
 	{
 		if($type == 'Controller'){
-			$className = $this->Request->current('controller.class');
+			return  ucfirst($this->config['prefix']) . ucfirst($name);
 		} else {
 
 			/**
@@ -296,7 +301,7 @@ class FramePress_011
 		if($type != 'Core'){
 			$l = $this->Request->current('loading');
 			$l['class_name'] = $className;
-			$l = $this->Request->current('loading', $l);
+			$this->Request->current('loading', $l);
 		}
 
 
@@ -403,8 +408,8 @@ class FramePress_011
 }//end if class exists
 
 //Export framework className
-$GLOBALS["FramePress"] = 'FramePress_011';
-$FramePress = 'FramePress_011';
+$GLOBALS["FramePress"] = 'FramePress_012';
+$FramePress = 'FramePress_012';
 
 if(!function_exists('framePressGet')){
 	function framePressGet($configuration = array())
