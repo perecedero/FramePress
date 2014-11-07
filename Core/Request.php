@@ -76,41 +76,52 @@ class FramePress_Request_003
 
 	public function current($key = null, $value= null)
 	{
-		//pr($this->queue);
+		//call to current() and no queue;
+		//ex: called for first time from the template
+		if(!$this->queue){
+			$this->create();
+		}
 
 		if(!$key){
-
-			//call to current() and no queue;
-			if(!$this->queue){ return array(); }
-
 			//return the last request with all the values
-			else { return end($this->queue); }
-
+			return end($this->queue);
 		} else if ($key && $value === null) {
-
-			//call to current($key) and no queue;
-			if(!$this->queue){ return null; }
-			else{
-				$last = end($this->queue);
-				return $last[$key];
-			}
+			$last = end($this->queue);
+			return $last[$key];
 		} else {
-
-			//call to current($key, $value) and no queue;
-			if(!$this->queue){ return null; }
-			else {
-				end($this->queue);
-				$i = key($this->queue);
-				return $this->queue[$i][$key] = $value;
-			}
+			end($this->queue);
+			$i = key($this->queue);
+			return $this->queue[$i][$key] = $value;
 		}
 	}
+
 	public function finish($name = null, $value= null)
 	{
 		return array_pop ($this->queue);
 	}
 
- }//end class
+	public function create($request = null, $type= null, $extra = array())
+	{
+		if(!$request) {
+			$request = 'custom';
+			if( did_action( 'wp' )) {
+				$type = 'from-template';
+			} else {
+				$type = 'before-template';
+			}
+		}
+
+		$this->queue[] = array_merge( array(
+			'call' => $request,
+			'call.type' => $type,
+			'response.code' => 200,
+			'response.type' => null,
+			'response.body' => null,
+		), $extra);
+	}
+
+
+}//end class
 }//end if class exist
 
 //Export framework className
