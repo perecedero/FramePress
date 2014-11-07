@@ -31,7 +31,7 @@ class FramePress_Response_002
 		$req = $this->Core->Request->current();
 		$output = '';
 
-		if ( in_array($req['call.type'], array('adminpage', 'metabox')) && is_null($req['response.body'])){
+		if ( in_array($req['call.type'], array('adminpage', 'metabox', 'from-template')) && is_null($req['response.body'])){
 			//print default view
 			$this->Core->View->render(null, array('print' => true));
 		}
@@ -56,7 +56,7 @@ class FramePress_Response_002
 		}
 
 
-		elseif($req['call.type'] == 'hook' ){
+		elseif(in_array( $req['call.type'], array('hook', 'before-template' ) )){
 			if($req['response.type']){
 				//Response must be sent
 				$this->send();
@@ -75,7 +75,7 @@ class FramePress_Response_002
 		$req = $this->Core->Request->current();
 		$type = (isset($req['call.type']))? $req['call.type'] : null;
 
-		if ( in_array($type, array('adminpage', 'metabox', 'shortcode')) ){
+		if ( in_array($type, array('adminpage', 'metabox', 'shortcode', 'from-template')) ){
 
 			$context =  $this->Core->Error->viewContext;
 

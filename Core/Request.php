@@ -35,19 +35,14 @@ class FramePress_Request_003
 		}
 
 		//set call status
-		$this->queue[] = array(
-			'call' => $req,
-			'call.type' => $type,
+		$this->create($req, $type, array(
 			'controller.file' => $this->Core->paths['controller'] . DS . $controller_requested . '.php',
 			'controller.name' => $controller_requested,
 			'controller.class' => ucfirst($this->Core->config['prefix']) . ucfirst($controller_requested),
 			'controller.method' => $function_requested,
 			'controller.method.args' => $args,
 			'controller.object' => null,
-			'response.code' => 200,
-			'response.type' => null,
-			'response.body' => null,
-		);
+		));
 
 		return $this->check();
 	}
