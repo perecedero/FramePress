@@ -43,8 +43,13 @@ class FramePress_Html_001
 	*/
 	public function js ($file, $args=array())
 	{
-		$url = $this->Core->paths['js.url'] . '/' . $file;
-		return "<script type='text/javascript' language='javascript' src='{$url}'></script>";
+		if(!isset($args['inline'])){
+			$url = $this->Core->paths['js.url'] . '/' . $file;
+			return "<script type='text/javascript' language='javascript' src='{$url}'></script>";
+		} else {
+			$file = $this->Core->paths['js'] . DS . $file;
+			return "<script type='text/javascript' language='javascript'>" . file_get_contents($file) . "</script>";
+		}
 	}
 
 	/**
