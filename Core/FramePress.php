@@ -21,10 +21,12 @@ if(!defined('DIRECTORY_SEPARATOR')){define('DIRECTORY_SEPARATOR', '/');}
 if(!defined('DS')){define('DS', DIRECTORY_SEPARATOR);}
 
 //Define core class
-if (!class_exists('FramePress_012')) {
-class FramePress_012
+if (!class_exists('FramePress_013')) {
+class FramePress_013
 {
     public $modules;
+
+    public $objects;
 
 	public $config = array(
 		'prefix' => null,
@@ -65,6 +67,7 @@ class FramePress_012
 			'controller' => $fullpath . DS . 'Controllers',
 			'views' => $fullpath . DS . 'Views',
 			'lib' => $fullpath . DS . 'Lib',
+			'vendor' => $fullpath . DS . 'Vendors',
 			'lang' => $foldername . DS . 'Languages',
 
 			'assets' => $fullpath . DS . 'Assets',
@@ -194,10 +197,11 @@ class FramePress_012
 	//------------------------------------------------------------------------------------------------------------------
 
 	/**
-	 * Perform import and instansation of a class.
-	 * classes can be controller, core or generic libs
+	 * Perform import and instantiation of a class.
+	 * Class types can be controller, core or generic libs.
+	 * Vendors will be only imported
 	 *
-	 * @param string $type type of Lib ( Core|LIB|Controller)
+	 * @param string $type type of Lib ( Core|LIB|Controller|Vendor)
 	 * @param string $name the place for redirect
 	 * @return void
 	*/
@@ -205,6 +209,7 @@ class FramePress_012
 	{
 		$info = $this->fileInfo($type, $name);
 		$t =  $info['type_base'];
+		$p =  $info['type_path'];
 		$n =  $info['name'];
 
 		if($t != 'Core') {
@@ -212,7 +217,7 @@ class FramePress_012
 		}
 
 
-		if(!isset($this->modules[$t][$n])){
+		if(!isset($this->modules[$t][$p.$n])){
 
 			if($this->fileCheck($info)){
 				require_once($info['file']);
@@ -220,19 +225,30 @@ class FramePress_012
 				return false;
 			}
 
-			//get class name
-			$className = $this->fileClassName($t, $n);
-			if(!$className) {
-				$this->modules[$t][$n] = new stdClass();
-				return false;
+			$this->modules[$t][$p.$n] = 'imported';
+
+			//Vendors don't follow FramePress standard
+			if($t != 'Vendor') {
+
+				//get class name
+				$className = $this->fileClassName($t, $n);
+
+				if(!$className) {
+					$this->objects[$t][$p.$n] = new stdClass();
+					return false;
+				}
+
+				$this->objects[$t][$p.$n] = new $className($this, $args);
 			}
 
-			$this->modules[$t][$n] = new $className($this, $args);
 		}
+
+		//vendors only have to be imported
+		if($t == 'Vendor') { return true;}
 
 
 		//bad controller is called again from another hook/shortcode/adminpage/etc
-		if( $this->modules[$t][$n] instanceof stdClass) {
+		if( $this->objects[$t][$p.$n] instanceof stdClass) {
 			$this->fileClassName($t, $n);
 			return false;
 		}
@@ -240,8 +256,12 @@ class FramePress_012
 		if($t != 'Core') {
 			$this->Request->current('loading', false);
 		}
-		return $this->modules[$info['type_base']][$info['name']];
+
+
+		return $this->objects[$t][$p.$n];
 	}
+
+
 
 	private function fileInfo($type, $name)
 	{
@@ -315,7 +335,7 @@ class FramePress_012
 
 
 	/**
-	 * Checi if a deterinated class is loaded
+	 * Check if a given class is loaded
 	 *
 	 * @param string $type type of Lib (Core|LIB|Controller etc)
 	 * @param string $name: name of the loaded class
@@ -408,8 +428,8 @@ class FramePress_012
 }//end if class exists
 
 //Export framework className
-$GLOBALS["FramePress"] = 'FramePress_012';
-$FramePress = 'FramePress_012';
+$GLOBALS["FramePress"] = 'FramePress_013';
+$FramePress = 'FramePress_013';
 
 if(!function_exists('framePressGet')){
 	function framePressGet($configuration = array())
