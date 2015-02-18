@@ -4,14 +4,13 @@
 	*/
 
 	//init framework
-	require_once( 'Core/FramePress.php' );
+	require_once 'Core/FramePress.php';
 	global $test;
 	$test  =  framePressGet(array(
 		'prefix' => 'testprefix',
 		'here' => __FILE__,
 		'debug' => true,
 	));
-
 
 	$test->WordPress->shortcodes(array(
 		array(
@@ -49,5 +48,3 @@
 			),
 		),
 	));
-
-

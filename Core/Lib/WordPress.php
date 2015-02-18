@@ -234,6 +234,65 @@ class FramePress_WordPress_001
 		}
 	}
 
+	//---------------------------------------
+
+	/**
+	 * Create an URL to a controller or resource using a "place" array
+	 *
+	 * @param array $url place for the href
+	 * @return string
+	*/
+	public function router ($url=array())
+	{
+		//string pased, nothing to do
+		if (!is_array($url)){ return $url; }
+
+		//complete $url
+		$defaults = array('menu_type' => null, 'controller' => null, 'function'=> null, 'params'=> '');
+		$url = array_merge($defaults, $url);
+
+		//search menu slug
+		if($url['controller']){
+			$aux_slug = $this->config['prefix'] . '-' . $url['controller'];
+			foreach ($this->pages as $type => $pages){
+				for($i=0; $i<count($pages); $i++){
+					if (strpos($pages[$i]['menu.slug'], $aux_slug) !== false) {
+						$url['menu.slug'] = $pages[$i]['menu.slug'];
+						if(!$url['menu_type']){ $url['menu_type'] = $type; }
+					}
+				}
+			}
+		}
+
+		//correct values
+		$url['controller'] = ($url['controller'])? $url['menu.slug'] : $_GET['page'];
+		$url['function'] = ($url['function'])?'&amp;function='.$url['function']:'';
+
+		//parameter to the funcion
+		foreach($url as $key =>$value) {
+			if(preg_match("/^[[:digit:]]+$/", $key)) { $url['params'].='&amp;fargs[]='.urlencode($value); }
+		}
+
+		$wpurl = get_bloginfo('wpurl');
+		switch ($url['menu_type']){
+			case 'menu':		$base = $wpurl.'/wp-admin/admin.php?'; break;
+			case 'dashboard':	$base = $wpurl.'/wp-admin/index.php?'; break;
+			case 'posts':		$base = $wpurl.'/wp-admin/edit.php?'; break;
+			case 'media':		$base = $wpurl.'/wp-admin/upload.php?'; break;
+			case 'links':		$base = $wpurl.'/wp-admin/link-manager.php?'; break;
+			case 'pages':		$base = $wpurl.'/wp-admin/edit.php?post_type=page&'; break;
+			case 'comments':	$base = $wpurl.'/wp-admin/edit-comments.php?'; break;
+			case 'appearance':	$base = $wpurl.'/wp-admin/themes.php?'; break;
+			case 'plugins':		$base = $wpurl.'/wp-admin/plugins.php?'; break;
+			case 'users':		$base = $wpurl.'/wp-admin/users.php?'; break;
+			case 'tools':		$base = $wpurl.'/wp-admin/tools.php?'; break;
+			case 'settings':	$base = $wpurl.'/wp-admin/options-general.php?'; break;
+			default: 			$base = $_SERVER['PHP_SELF'].'?'; break;
+		}
+
+		return $base . 'page=' . $url['controller'] . $url['function'] . $url['params'];
+	}
+
 }//end class
 }//end if class exist
 

@@ -142,6 +142,19 @@ class FramePress_Error_003
 	}
 
 
+	/**
+	 * Enque script and styles to display errors
+	 *
+	 * This function is registered on FramePress constructor only if debug is activated
+	 *
+	 * @return void
+	*/
+	public function _addScripts ()
+	{
+		wp_enqueue_script('FramePressErrors');
+		wp_enqueue_style('FramePressErrors');
+	}
+
 
  }//end class
 } //end if class exists;

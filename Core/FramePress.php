@@ -1,7 +1,7 @@
 <?php
 
  /**
- * Core class for FramePress Lite.
+ * Core class for FramePress
  *
  * DESCRIPTION NEEDED
  *
@@ -10,23 +10,20 @@
  *
  * @link			https://github.com/perecedero/FramePress
  * @package		FramePress
- * @subpackage	core
- * @license		GPL v2 License
+ * @subpackage	Core
+ * @license		MIT
  * @author		Ivan Lansky (@perecedero)
  */
 
+require_once 'basics.php';
+require_once 'Lib/Loader.php';
 
-//Use the DS to separate the directories
-if(!defined('DIRECTORY_SEPARATOR')){define('DIRECTORY_SEPARATOR', '/');}
-if(!defined('DS')){define('DS', DIRECTORY_SEPARATOR);}
 
 //Define core class
 if (!class_exists('FramePress_013')) {
 class FramePress_013
 {
-    public $modules;
 
-    public $objects;
 
 	public $config = array(
 		'prefix' => null,
@@ -50,11 +47,13 @@ class FramePress_013
 	*/
 	public function __construct($main_file, $config = array() )
 	{
+		global $FramePressLoader;
+
 		$fullpath = dirname($main_file);
 		$foldername = basename(dirname($main_file));
 		$blogurl = get_bloginfo( 'wpurl' );
 
-		//set partial paths
+		//set paths
 		$this->paths = array (
 			'plugin' => $fullpath,
 
@@ -80,22 +79,26 @@ class FramePress_013
 			'js.url' => $blogurl. '/wp-content/plugins/' . $foldername . '/Assets/js',
 		);
 
-		//set partial status
+		//set status
 		$this->status = array_merge($this->status, array(
 			'plugin.fullpath' => $fullpath,
 			'plugin.foldername' => $foldername,
 			'plugin.mainfile' => basename($main_file),
 		));
 
-		//Merge configurations
+		//set configurations
 		$this->config = array_merge($this->config, $config);
 
+		//set class loader
+		$this->Loader = new $FramePressLoader($this);
+
+		//activate error handling
 		if($this->config['debug']) {
 			@set_error_handler(array($this->Error, 'capture'));
 			@ini_set('display_errors', false);
 			@register_shutdown_function (array($this->Error, 'shutdown'));
-			add_action('admin_enqueue_scripts', array($this, '_addScripts'));
-			add_action('wp_enqueue_scripts', array($this, '_addScripts'));
+			add_action('admin_enqueue_scripts', array($this->Error, '_addScripts'));
+			add_action('wp_enqueue_scripts', array($this->Error, '_addScripts'));
 		}
 
 		//Register activation and deactivation functions
@@ -103,18 +106,23 @@ class FramePress_013
 		register_deactivation_hook($this->status['plugin.foldername'] . DS . $this->status['plugin.mainfile'], array($this, '_deactivation'));
 		register_uninstall_hook($this->status['plugin.foldername'] . DS . $this->status['plugin.mainfile'], array($this, '_uninstall'));
 
+		//some actions must be made once WP is fully loaded
 		add_action('init', array($this, '_Init'), 100);
+
+
 	}
 
     public function __get($name)
     {
-		return $this->$name = $this->load('Core', $name);
+		return $this->$name = $this->Loader->load('Core/Lib', $name);
     }
 
 	//------------------------------------------------------------------------------------------------------------------
 
 	/**
 	 * Initialize the framework
+	 *
+	 * Load dictionary, register assets, capture output
 	 *
 	 * @return void
 	*/
@@ -127,6 +135,7 @@ class FramePress_013
 			load_plugin_textdomain( $domain, false, $this->paths['lang'] );
 		}
 
+		//register error reporting assets
 		if($this->config['debug']) {
 			wp_deregister_script( 'FramePressErrors' );
 			wp_register_script( 'FramePressErrors', $this->paths['core.js.url'] . DS . 'error.js',  array('jquery'), time(), false);
@@ -136,19 +145,8 @@ class FramePress_013
 
 		//Start the output capture
 		@ob_start();
-
 	}
 
-	/**
-	 * Initialize the framework
-	 *
-	 * @return void
-	*/
-	public function _addScripts ()
-	{
-		wp_enqueue_script('FramePressErrors');
-		wp_enqueue_style('FramePressErrors');
-	}
 
 	/**
 	 * Call activation function
@@ -172,7 +170,7 @@ class FramePress_013
 	}
 
 	/**
-	 * Call deactivation function
+	 * Call uninstall function
 	 *
 	 * @return void
 	*/
@@ -194,162 +192,6 @@ class FramePress_013
 		$this->paths = array_merge($this->paths, $custom_path);
 	}
 
-	//------------------------------------------------------------------------------------------------------------------
-
-	/**
-	 * Perform import and instantiation of a class.
-	 * Class types can be controller, core or generic libs.
-	 * Vendors will be only imported
-	 *
-	 * @param string $type type of Lib ( Core|LIB|Controller|Vendor)
-	 * @param string $name the place for redirect
-	 * @return void
-	*/
-	public function load ($type, $name, $args = null)
-	{
-		$info = $this->fileInfo($type, $name);
-		$t =  $info['type_base'];
-		$p =  $info['type_path'];
-		$n =  $info['name'];
-
-		if($t != 'Core') {
-			$this->Request->current('loading', $info);
-		}
-
-
-		if(!isset($this->modules[$t][$p.$n])){
-
-			if($this->fileCheck($info)){
-				require_once($info['file']);
-			} else {
-				return false;
-			}
-
-			$this->modules[$t][$p.$n] = 'imported';
-
-			//Vendors don't follow FramePress standard
-			if($t != 'Vendor') {
-
-				//get class name
-				$className = $this->fileClassName($t, $n);
-
-				if(!$className) {
-					$this->objects[$t][$p.$n] = new stdClass();
-					return false;
-				}
-
-				$this->objects[$t][$p.$n] = new $className($this, $args);
-			}
-
-		}
-
-		//vendors only have to be imported
-		if($t == 'Vendor') { return true;}
-
-
-		//bad controller is called again from another hook/shortcode/adminpage/etc
-		if( $this->objects[$t][$p.$n] instanceof stdClass) {
-			$this->fileClassName($t, $n);
-			return false;
-		}
-
-		if($t != 'Core') {
-			$this->Request->current('loading', false);
-		}
-
-
-		return $this->objects[$t][$p.$n];
-	}
-
-
-
-	private function fileInfo($type, $name)
-	{
-		$info = array(
-			'type' => $type,
-			'type_base' => $type,
-			'type_path' => '',
-			'name' => preg_replace('/.php$/s', '', $name),
-		);
-
-		if( ($subtype = strpos($type, '/')) !== false  ){
-			$info['type_base'] = substr($type, 0, $subtype );
-			$info['type_path'] =  substr($type, $subtype +1) . DS;
-		}
-
-		$info['file'] = $this->paths[strtolower($info['type_base'])] . DS . $info['type_path'] . $info['name'] . '.php';
-
-		return $info;
-	}
-
-	private function fileCheck($info)
-	{
-		if(!file_exists($info['file'])) {
-			$this->Error->set('Missing File');
-			return false;
-		} elseif(!is_readable($info['file'])) {
-			$fp_status = $this->status;
-			$this->Error->set('Unreadable File');
-			return false;
-		} else {
-			return true;
-		}
-	}
-
-	private function fileClassName ($type, $name)
-	{
-		if($type == 'Controller'){
-			return  ucfirst($this->config['prefix']) . ucfirst($name);
-		} else {
-
-			/**
-			 * for generic Libs and core libs the
-			 * real class name is stored in the *global export var
-			*/
-
-			//get the name for the global export var
-			$globalExportVarName = ucfirst(basename($name));
-			if( $type ==  'Core'){
-				$globalExportVarName = 'FramePress' . $globalExportVarName;
-			}
-
-			// return the content of the global var (the real class name)
-			global $$globalExportVarName;
-			$className =  $$globalExportVarName;
-		}
-
-		if($type != 'Core'){
-			$l = $this->Request->current('loading');
-			$l['class_name'] = $className;
-			$this->Request->current('loading', $l);
-		}
-
-
-		if (!class_exists($className)){
-			$this->Error->set('Missing Class');
-			return false;
-		}
-
-		return $className;
-	}
-
-
-	/**
-	 * Check if a given class is loaded
-	 *
-	 * @param string $type type of Lib (Core|LIB|Controller etc)
-	 * @param string $name: name of the loaded class
-	 * @return void
-	*/
-	public function isLoaded ($type, $name)
-	{
-		$info = $this->fileInfo($type, $name);
-
-		return isset($this->modules[$info['type']][$info['name']]);
-	}
-
-
-	//------------------------------------------------------------------------------------------------------------------
 
 	/**
 	 * Perform a redirect using headers
@@ -361,104 +203,16 @@ class FramePress_013
 	{
 		@ob_end_clean();
 
-		$url = $this->router($url);
+		//$url = $this->router($url);
 		wp_redirect($url); exit;
 	}
 
-	/**
-	 * Create an URL to a controller or resource using a "place" array
-	 *
-	 * @param array $url place for the href
-	 * @return string
-	*/
-	public function router ($url=array())
-	{
-		//string pased, nothing to do
-		if (!is_array($url)){ return $url; }
 
-		//complete $url
-		$defaults = array('menu_type' => null, 'controller' => null, 'function'=> null, 'params'=> '');
-		$url = array_merge($defaults, $url);
-
-		//search menu slug
-		if($url['controller']){
-			$aux_slug = $this->config['prefix'] . '-' . $url['controller'];
-			foreach ($this->pages as $type => $pages){
-				for($i=0; $i<count($pages); $i++){
-					if (strpos($pages[$i]['menu.slug'], $aux_slug) !== false) {
-						$url['menu.slug'] = $pages[$i]['menu.slug'];
-						if(!$url['menu_type']){ $url['menu_type'] = $type; }
-					}
-				}
-			}
-		}
-
-		//correct values
-		$url['controller'] = ($url['controller'])? $url['menu.slug'] : $_GET['page'];
-		$url['function'] = ($url['function'])?'&amp;function='.$url['function']:'';
-
-		//parameter to the funcion
-		foreach($url as $key =>$value) {
-			if(preg_match("/^[[:digit:]]+$/", $key)) { $url['params'].='&amp;fargs[]='.urlencode($value); }
-		}
-
-		$wpurl = get_bloginfo('wpurl');
-		switch ($url['menu_type']){
-			case 'menu':		$base = $wpurl.'/wp-admin/admin.php?'; break;
-			case 'dashboard':	$base = $wpurl.'/wp-admin/index.php?'; break;
-			case 'posts':		$base = $wpurl.'/wp-admin/edit.php?'; break;
-			case 'media':		$base = $wpurl.'/wp-admin/upload.php?'; break;
-			case 'links':		$base = $wpurl.'/wp-admin/link-manager.php?'; break;
-			case 'pages':		$base = $wpurl.'/wp-admin/edit.php?post_type=page&'; break;
-			case 'comments':	$base = $wpurl.'/wp-admin/edit-comments.php?'; break;
-			case 'appearance':	$base = $wpurl.'/wp-admin/themes.php?'; break;
-			case 'plugins':		$base = $wpurl.'/wp-admin/plugins.php?'; break;
-			case 'users':		$base = $wpurl.'/wp-admin/users.php?'; break;
-			case 'tools':		$base = $wpurl.'/wp-admin/tools.php?'; break;
-			case 'settings':	$base = $wpurl.'/wp-admin/options-general.php?'; break;
-			default: 			$base = $_SERVER['PHP_SELF'].'?'; break;
-		}
-
-		return $base . 'page=' . $url['controller'] . $url['function'] . $url['params'];
-	}
 
 
 }//end class
-
 }//end if class exists
 
 //Export framework className
 $GLOBALS["FramePress"] = 'FramePress_013';
 $FramePress = 'FramePress_013';
-
-if(!function_exists('framePressGet')){
-	function framePressGet($configuration = array())
-	{
-		global $FramePress;
-
-		if(isset($configuration['here'])){
-			$file = $configuration['here'];
-		}else{
-			$file = dirname(dirname(__FILE__)) . DS . 'main.php';
-		}
-
-		return new $FramePress($file, $configuration);
-	}
-}
-
-if (!function_exists('pr')) {
-/**
- * print_r() convenience function
- *
- * In terminals this will act the same as using print_r() directly, when not run on cli
- * print_r() will wrap <PRE> tags around the output of given array.
- *
- * @param array $var Variable to print out
- * @return void
- * @link http://book.cakephp.org/2.0/en/core-libraries/global-constants-and-functions.html#pr
- */
-	function pr($var) {
-		$template = php_sapi_name() !== 'cli' ? '<pre>%s</pre>' : "\n%s\n";
-		printf($template, print_r($var, true));
-	}
-}

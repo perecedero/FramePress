@@ -54,7 +54,7 @@ class FramePress_Request_003
 		$name = $req['controller.name'];
 
 		//create the controller object && check method
-		$obj =  $this->Core->load('Controller', $name);
+		$obj =  $this->Core->Loader->load('Controller', $name);
 		if(!$obj){
 			return false;
 		}

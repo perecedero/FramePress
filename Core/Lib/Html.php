@@ -63,7 +63,7 @@ class FramePress_Html_001
 	public function link ($title, $url=array(), $args=array())
 	{
 		$href = $this->Core->router($url);
-		$prop = $this->tagPropeties($options);
+		$prop = $this->tagPropeties($args);
 		return "<a href='{$href}' {$prop} >{$title}</a>";
 	}
 
