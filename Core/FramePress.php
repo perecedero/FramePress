@@ -15,15 +15,10 @@
  * @author		Ivan Lansky (@perecedero)
  */
 
-require_once 'basics.php';
-require_once 'Lib/Loader.php';
-
-
 //Define core class
-if (!class_exists('FramePress_013')) {
-class FramePress_013
+if (!class_exists('FramePress_014')) {
+class FramePress_014
 {
-
 
 	public $config = array(
 		'prefix' => null,
@@ -42,15 +37,14 @@ class FramePress_013
 	/**
 	 * Constructor.
 	 *
-	 * @param string $main_file Name of the main file
-	 * @param string $config user configuration
+	 * @param string $config initial user configuration
 	*/
-	public function __construct($main_file, $config = array() )
+	public function __construct($name, $config = array() )
 	{
-		global $FramePressLoader;
+		global $mainfile, $FramePressLoader;
 
-		$fullpath = dirname($main_file);
-		$foldername = basename(dirname($main_file));
+		$fullpath = dirname($mainfile);
+		$foldername = basename(dirname($mainfile));
 		$blogurl = get_bloginfo( 'wpurl' );
 
 		//set paths
@@ -83,7 +77,7 @@ class FramePress_013
 		$this->status = array_merge($this->status, array(
 			'plugin.fullpath' => $fullpath,
 			'plugin.foldername' => $foldername,
-			'plugin.mainfile' => basename($main_file),
+			'plugin.mainfile' => basename($mainfile),
 		));
 
 		//set configurations
@@ -108,8 +102,6 @@ class FramePress_013
 
 		//some actions must be made once WP is fully loaded
 		add_action('init', array($this, '_Init'), 100);
-
-
 	}
 
     public function __get($name)
@@ -192,7 +184,6 @@ class FramePress_013
 		$this->paths = array_merge($this->paths, $custom_path);
 	}
 
-
 	/**
 	 * Perform a redirect using headers
 	 *
@@ -214,5 +205,5 @@ class FramePress_013
 }//end if class exists
 
 //Export framework className
-$GLOBALS["FramePress"] = 'FramePress_013';
-$FramePress = 'FramePress_013';
+$GLOBALS["FramePress"] = 'FramePress_014';
+$FramePress = 'FramePress_014';

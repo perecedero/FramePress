@@ -1,11 +1,8 @@
 <?php
 
-//Use the DS to separate the directories
-if(!defined('DIRECTORY_SEPARATOR')){define('DIRECTORY_SEPARATOR', '/');}
-if(!defined('DS')){define('DS', DIRECTORY_SEPARATOR);}
 
 
-if(!function_exists('framePressGet')){
+if(!function_exists('framepressGetInstance')){
 
 /**
  * Returns a new FramePress object
@@ -16,19 +13,28 @@ if(!function_exists('framePressGet')){
  * @param array $configuration, list of custom configuration values
  * @return object
  */
-	function framePressGet($configuration = array())
+	function framepressGetInstance($name, $configuration = array())
 	{
 		global $FramePress;
+		global $FramePressInstances;
 
-		if(isset($configuration['here'])){
-			$file = $configuration['here'];
-		}else{
-			$file = dirname(dirname(__FILE__)) . DS . 'main.php';
+		if (isset($FramePressInstances[$name])) {
+			return $FramePressInstances[$name];
+		} else {
+			$configuration = array_merge(array('prefix' => $name), $configuration);
+			$FramePressInstances[$name] = new $FramePress($configuration);
+			return $FramePressInstances[$name];
 		}
-
-		return new $FramePress($file, $configuration);
 	}
 }
+
+if (!function_exists('fpgi')) {
+	function fpgi($name)
+	{
+		return framepressGetInstance($name);
+	}
+}
+
 
 if (!function_exists('pr')) {
 /**
@@ -41,7 +47,8 @@ if (!function_exists('pr')) {
  * @return void
  * @link http://book.cakephp.org/2.0/en/core-libraries/global-constants-and-functions.html#pr
  */
-	function pr($var) {
+	function pr($var)
+	{
 		$template = php_sapi_name() !== 'cli' ? '<pre>%s</pre>' : "\n%s\n";
 		printf($template, print_r($var, true));
 	}
