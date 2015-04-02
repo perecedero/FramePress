@@ -172,16 +172,40 @@ class FramePress_014
 		do_action($this->config['prefix'] . '_uninstall' );
 	}
 
-	/**
-	 * Merge default path with user defined ones
+	/*
+	 * Modify  paths
+	 * Merge a user path array or add/modify a single path
 	 *
-	 * @param array $custom_path user defined path to use with the FramePress
+	 * @param mixed $key, values to be merged, or a key to add/modify
+	 * @param mixed $value
 	 * @return void
 	*/
-	public function mergePaths( $custom_path=array() )
+	public function path( $key, $value=null)
 	{
 		//merge configurations
 		$this->paths = array_merge($this->paths, $custom_path);
+		if (is_array($key)) {
+			$this->paths = array_merge($this->paths, $key);
+		} else {
+			$this->paths[$key] = $value;
+		}
+	}
+
+	/**
+	 * Modify the configuration options
+	 * Merge a user configuration array or add/modify a configuration option
+	 *
+	 * @param mixed $key, values to be merged, or a key to add/modify
+	 * @param mixed $value
+	 * @return void
+	*/
+	public function config()
+	{
+		if (is_array($key)) {
+			$this->config = array_merge($this->config, $key);
+		} else {
+			$this->config[$key] = $value;
+		}
 	}
 
 	/**
