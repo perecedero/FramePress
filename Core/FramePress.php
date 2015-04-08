@@ -39,7 +39,7 @@ class FramePress_014
 	 *
 	 * @param string $config initial user configuration
 	*/
-	public function __construct($name, $config = array() )
+	public function __construct($config = array() )
 	{
 		global $mainfile, $FramePressLoader;
 
@@ -199,7 +199,7 @@ class FramePress_014
 	 * @param mixed $value
 	 * @return void
 	*/
-	public function config()
+	public function config($key, $value=null)
 	{
 		if (is_array($key)) {
 			$this->config = array_merge($this->config, $key);
