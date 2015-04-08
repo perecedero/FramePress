@@ -86,15 +86,6 @@ class FramePress_014
 		//set class loader
 		$this->Loader = new $FramePressLoader($this);
 
-		//activate error handling
-		if($this->config['debug']) {
-			@set_error_handler(array($this->Error, 'capture'));
-			@ini_set('display_errors', false);
-			@register_shutdown_function (array($this->Error, 'shutdown'));
-			add_action('admin_enqueue_scripts', array($this->Error, '_addScripts'));
-			add_action('wp_enqueue_scripts', array($this->Error, '_addScripts'));
-		}
-
 		//Register activation and deactivation functions
 		register_activation_hook($this->status['plugin.foldername'] . DS . $this->status['plugin.mainfile'], array($this,'_activation'));
 		register_deactivation_hook($this->status['plugin.foldername'] . DS . $this->status['plugin.mainfile'], array($this, '_deactivation'));
@@ -127,13 +118,18 @@ class FramePress_014
 			load_plugin_textdomain( $domain, false, $this->paths['lang'] );
 		}
 
-		//register error reporting assets
-		if($this->config['debug']) {
-			wp_deregister_script( 'FramePressErrors' );
-			wp_register_script( 'FramePressErrors', $this->paths['core.js.url'] . DS . 'error.js',  array('jquery'), time(), false);
-			wp_deregister_style( 'FramePressErrors' );
-			wp_register_style( 'FramePressErrors', $this->paths['core.css.url'] . DS . 'error.css');
-		}
+		//activate error handling && register error reporting assets
+		@set_error_handler(array($this->Error, 'capture'));
+		@ini_set('display_errors', false);
+		@register_shutdown_function (array($this->Error, 'shutdown'));
+
+		wp_deregister_script( 'FramePressErrors' );
+		wp_register_script( 'FramePressErrors', $this->paths['core.js.url'] . DS . 'error.js',  array('jquery'), time(), false);
+		wp_deregister_style( 'FramePressErrors' );
+		wp_register_style( 'FramePressErrors', $this->paths['core.css.url'] . DS . 'error.css');
+
+		add_action('admin_enqueue_scripts', array($this->Error, '_addScripts'));
+		add_action('wp_enqueue_scripts', array($this->Error, '_addScripts'));
 
 		//Start the output capture
 		@ob_start();

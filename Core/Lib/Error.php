@@ -73,10 +73,14 @@ class FramePress_Error_003
 	}
 
 	//handle error depending on type
-	public function takeAction ()
+	public function takeAction()
 	{
+		if (!$this->Core->config['debug']) {
+			return true;
+		}
+
 		//shutdown response
-		if( $this->shutdown ) {
+		if ( $this->shutdown) {
 			$this->Core->Response->printDebug(); return true;
 		}
 
@@ -88,7 +92,7 @@ class FramePress_Error_003
 			return;
 		}
 
-		//hook errors are shown on shutdown
+		//hook errors are shown at shutdown
 		if ( isset( $error['request']['call.type']) &&  $error['request']['call.type'] == 'hook') {
 			return true;
 		}
@@ -151,6 +155,10 @@ class FramePress_Error_003
 	*/
 	public function _addScripts ()
 	{
+		if (!$this->Core->config['debug']) {
+			return true;
+		}
+
 		wp_enqueue_script('FramePressErrors');
 		wp_enqueue_style('FramePressErrors');
 	}
