@@ -9,11 +9,10 @@ if(!isset($FramePressInstances)) {
 	$FramePressInstances = array();
 }
 
-//set main file requested to differentiate betwenn framepress instalations
-$mainfile = __DIR__ . DS . 'main.php';
-
+//load files
 require __DIR__ . DS . 'Core' . DS . 'basics.php';
 require __DIR__ . DS . 'Core' . DS . 'Lib' . DS . 'Loader.php';
 require __DIR__ . DS . 'Core' . DS . 'FramePress.php';
 
-
+//create a master instance of framepress
+framepressGetInstance('master');
